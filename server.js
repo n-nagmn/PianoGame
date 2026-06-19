@@ -52,7 +52,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('updateScore', (data) => {
-        // Could implement live score sync here if wanted
+        socket.to(data.room).emit('opponentScore', data.score);
     });
 
     socket.on('playerDied', (room) => {

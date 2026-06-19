@@ -11,6 +11,7 @@ const waitingScreen = document.getElementById('waiting-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 const rankingScreen = document.getElementById('ranking-screen');
 const scoreDisplay = document.getElementById('score-display');
+const opponentScoreDisplay = document.getElementById('opponent-score-display');
 const finalScoreSpan = document.getElementById('final-score');
 const multiResult = document.getElementById('multi-result');
 const playerNameInput = document.getElementById('playerName');
@@ -42,9 +43,16 @@ let currentRoom = null;
 // Initial Draw
 drawBoard();
 
+// Load name from local storage
+const savedName = localStorage.getItem('playerName');
+if (savedName) {
+    playerNameInput.value = savedName;
+}
+
 // Events
 btnSingle.addEventListener('click', () => {
     myName = playerNameInput.value || "Anonymous";
+    localStorage.setItem('playerName', myName);
     isMultiplayer = false;
     startScreen.classList.add('hidden');
     startGame();
@@ -52,6 +60,7 @@ btnSingle.addEventListener('click', () => {
 
 btnMulti.addEventListener('click', () => {
     myName = playerNameInput.value || "Anonymous";
+    localStorage.setItem('playerName', myName);
     isMultiplayer = true;
     startScreen.classList.add('hidden');
     waitingScreen.classList.remove('hidden');
@@ -103,6 +112,12 @@ socket.on('opponentDied', () => {
     }
 });
 
+socket.on('opponentScore', (opScore) => {
+    if (isPlaying && isMultiplayer) {
+        opponentScoreDisplay.innerText = "Opponent: " + opScore;
+    }
+});
+
 socket.on('rankingData', (data) => {
     rankingList.innerHTML = '';
     data.forEach((entry, index) => {
@@ -120,6 +135,14 @@ function startGame() {
     speed = 5;
     scoreDisplay.innerText = score;
     scoreDisplay.classList.remove('hidden');
+    
+    if (isMultiplayer) {
+        opponentScoreDisplay.innerText = "Opponent: 0";
+        opponentScoreDisplay.classList.remove('hidden');
+    } else {
+        opponentScoreDisplay.classList.add('hidden');
+    }
+    
     isPlaying = true;
     
     multiResult.classList.add('hidden');
@@ -287,6 +310,7 @@ function gameOver(reason) {
 
 function showGameOver(isWin, message) {
     scoreDisplay.classList.add('hidden');
+    opponentScoreDisplay.classList.add('hidden');
     finalScoreSpan.innerText = score;
     
     if (isMultiplayer) {

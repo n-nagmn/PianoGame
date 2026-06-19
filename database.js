@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const dbPath = path.resolve(__dirname, 'rankings.json');
+const dbPath = '/tmp/rankings.json';
 
 function initDB() {
     if (!fs.existsSync(dbPath)) {
