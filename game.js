@@ -337,3 +337,27 @@ function showGameOver(isWin, message) {
     
     gameOverScreen.classList.remove('hidden');
 }
+
+function drawOpponentBoard(oppTiles) {
+    oppCtx.clearRect(0, 0, opponentCanvas.width, opponentCanvas.height);
+    const scale = 0.5;
+    oppCtx.strokeStyle = '#ccc';
+    oppCtx.lineWidth = 1;
+    for (let i = 1; i < COLS; i++) {
+        oppCtx.beginPath();
+        oppCtx.moveTo(i * (COL_WIDTH * scale), 0);
+        oppCtx.lineTo(i * (COL_WIDTH * scale), opponentCanvas.height);
+        oppCtx.stroke();
+    }
+    oppTiles.forEach(tile => {
+        if (tile.active || !tile.clicked) {
+            oppCtx.fillStyle = '#000';
+        } else {
+            oppCtx.fillStyle = '#ddd';
+        }
+        if (tile.isError) oppCtx.fillStyle = 'red';
+        oppCtx.fillRect(tile.col * (COL_WIDTH * scale), tile.y * scale, COL_WIDTH * scale, TILE_HEIGHT * scale);
+        oppCtx.strokeStyle = '#999';
+        oppCtx.strokeRect(tile.col * (COL_WIDTH * scale), tile.y * scale, COL_WIDTH * scale, TILE_HEIGHT * scale);
+    });
+}
