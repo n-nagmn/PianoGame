@@ -34,7 +34,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('findMatch', (data) => {
-        const playerName = data.name || 'Anonymous';
+        const playerName = data.name || '名無しさん';
         const mode = data.mode || 'normal';
         
         socket.playerName = playerName;

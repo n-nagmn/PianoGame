@@ -89,7 +89,7 @@ modeRadios.forEach(radio => {
 
 // Events
 btnSingle.addEventListener('click', () => {
-    myName = playerNameInput.value || "Anonymous";
+    myName = playerNameInput.value || "名無しさん";
     localStorage.setItem('playerName', myName);
     
     const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
@@ -101,7 +101,7 @@ btnSingle.addEventListener('click', () => {
 });
 
 btnMulti.addEventListener('click', () => {
-    myName = playerNameInput.value || "Anonymous";
+    myName = playerNameInput.value || "名無しさん";
     localStorage.setItem('playerName', myName);
     
     const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
