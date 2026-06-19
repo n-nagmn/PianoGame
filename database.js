@@ -11,8 +11,21 @@ function initDB() {
 
 function saveScore(name, score, mode) {
     try {
-        const data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-        data.push({ name, score, mode: mode || 'normal', timestamp: new Date().toISOString() });
+        let data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+        const targetMode = mode || 'normal';
+        
+        // Find existing entry
+        const existingIndex = data.findIndex(d => d.name === name && (d.mode || 'normal') === targetMode);
+        
+        if (existingIndex !== -1) {
+            if (score > data[existingIndex].score) {
+                data[existingIndex].score = score;
+                data[existingIndex].timestamp = new Date().toISOString();
+            }
+        } else {
+            data.push({ name, score, mode: targetMode, timestamp: new Date().toISOString() });
+        }
+        
         fs.writeFileSync(dbPath, JSON.stringify(data));
     } catch (err) {
         console.error('Error saving score:', err.message);
