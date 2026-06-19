@@ -1,5 +1,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const opponentCanvas = document.getElementById('opponentCanvas');
+const oppCtx = opponentCanvas.getContext('2d');
 
 const port = (window.location.port === '' || window.location.port === '80') ? ':3001' : `:${window.location.port}`;
 const socketUrl = window.location.protocol + '//' + window.location.hostname + port;
@@ -12,6 +14,7 @@ const gameOverScreen = document.getElementById('game-over-screen');
 const rankingScreen = document.getElementById('ranking-screen');
 const scoreDisplay = document.getElementById('score-display');
 const opponentScoreDisplay = document.getElementById('opponent-score-display');
+const opponentContainer = document.getElementById('opponent-container');
 const finalScoreSpan = document.getElementById('final-score');
 const multiResult = document.getElementById('multi-result');
 const playerNameInput = document.getElementById('playerName');
@@ -112,9 +115,10 @@ socket.on('opponentDied', () => {
     }
 });
 
-socket.on('opponentScore', (opScore) => {
+socket.on('opponentState', (data) => {
     if (isPlaying && isMultiplayer) {
-        opponentScoreDisplay.innerText = "Opponent: " + opScore;
+        opponentScoreDisplay.innerText = "Opponent: " + data.score;
+        drawOpponentBoard(data.tiles);
     }
 });
 
@@ -139,8 +143,11 @@ function startGame() {
     if (isMultiplayer) {
         opponentScoreDisplay.innerText = "Opponent: 0";
         opponentScoreDisplay.classList.remove('hidden');
+        opponentContainer.classList.remove('hidden');
+        oppCtx.clearRect(0, 0, opponentCanvas.width, opponentCanvas.height);
     } else {
         opponentScoreDisplay.classList.add('hidden');
+        opponentContainer.classList.add('hidden');
     }
     
     isPlaying = true;
@@ -205,6 +212,10 @@ function update() {
     const lastTile = tiles[tiles.length - 1];
     if (lastTile && lastTile.y > -TILE_HEIGHT) {
         spawnTile(lastTile.y - TILE_HEIGHT);
+    }
+    
+    if (isMultiplayer) {
+        socket.emit('gameState', { room: currentRoom, score: score, tiles: tiles });
     }
 }
 
@@ -274,7 +285,7 @@ function handleInput(colIndex) {
                 scoreDisplay.innerText = score;
                 
                 if (isMultiplayer) {
-                    socket.emit('updateScore', { room: currentRoom, score: score });
+                    socket.emit('gameState', { room: currentRoom, score: score, tiles: tiles });
                 }
             } else {
                 tiles.push({

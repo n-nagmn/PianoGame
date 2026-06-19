@@ -51,8 +51,8 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('updateScore', (data) => {
-        socket.to(data.room).emit('opponentScore', data.score);
+    socket.on('gameState', (data) => {
+        socket.to(data.room).emit('opponentState', data);
     });
 
     socket.on('playerDied', (room) => {

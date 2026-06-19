@@ -7,8 +7,9 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="game-container">
-        <canvas id="gameCanvas" width="400" height="800"></canvas>
+    <div id="wrapper">
+        <div id="game-container">
+            <canvas id="gameCanvas" width="400" height="800"></canvas>
         <div id="ui-layer">
             <div id="start-screen" class="screen">
                 <h1>Piano Tiles</h1>
@@ -39,6 +40,11 @@
             
             <div id="score-display" class="hidden">0</div>
             <div id="opponent-score-display" class="hidden">Opponent: 0</div>
+        </div>
+        
+        <div id="opponent-container" class="hidden">
+            <h3>Opponent</h3>
+            <canvas id="opponentCanvas" width="200" height="400"></canvas>
         </div>
     </div>
     
