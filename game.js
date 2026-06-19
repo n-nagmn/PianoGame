@@ -162,7 +162,12 @@ btnCloseRanking.addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', (e) => {
-    if (!isPlaying) return;
+    if (!isPlaying) {
+        if (e.code === 'Space' && !gameOverScreen.classList.contains('hidden')) {
+            btnRestart.click();
+        }
+        return;
+    }
     
     let key = e.key.toLowerCase();
     if (key === ';') key = '+';
