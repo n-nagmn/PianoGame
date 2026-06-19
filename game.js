@@ -45,11 +45,11 @@ function setMode(mode) {
     } else if (mode === 'hyper') {
         COLS = 6;
         KEYS = ['s', 'd', 'f', 'j', 'k', 'l'];
-        newWidth = 600;
+        newWidth = 500;
     } else if (mode === 'another') {
         COLS = 8;
         KEYS = ['a', 's', 'd', 'f', 'j', 'k', 'l', '+'];
-        newWidth = 800;
+        newWidth = 600;
     }
     
     canvas.width = newWidth;
