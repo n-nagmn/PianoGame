@@ -146,6 +146,34 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+function handlePointerDown(e) {
+    if (!isPlaying) return;
+    e.preventDefault();
+
+    const rect = canvas.getBoundingClientRect();
+    const colWidthOnScreen = rect.width / COLS;
+
+    if (e.changedTouches) {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            const x = touch.clientX - rect.left;
+            const colIndex = Math.floor(x / colWidthOnScreen);
+            if (colIndex >= 0 && colIndex < COLS) {
+                handleInput(colIndex);
+            }
+        }
+    } else {
+        const x = e.clientX - rect.left;
+        const colIndex = Math.floor(x / colWidthOnScreen);
+        if (colIndex >= 0 && colIndex < COLS) {
+            handleInput(colIndex);
+        }
+    }
+}
+
+canvas.addEventListener('touchstart', handlePointerDown, { passive: false });
+canvas.addEventListener('mousedown', handlePointerDown);
+
 // Socket Events
 socket.on('matchFound', (data) => {
     currentRoom = data.room;
