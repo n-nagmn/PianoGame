@@ -174,6 +174,16 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+document.addEventListener('keyup', (e) => {
+    if (!isPlaying) return;
+    let key = e.key.toLowerCase();
+    if (key === ';') key = '+';
+    const colIndex = KEYS.indexOf(key);
+    if (colIndex !== -1) {
+        handleRelease(colIndex);
+    }
+});
+
 function handlePointerDown(e) {
     if (!isPlaying) return;
     e.preventDefault();
@@ -199,8 +209,35 @@ function handlePointerDown(e) {
     }
 }
 
+function handlePointerUp(e) {
+    if (!isPlaying) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const colWidthOnScreen = rect.width / COLS;
+
+    if (e.changedTouches) {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            const x = touch.clientX - rect.left;
+            const colIndex = Math.floor(x / colWidthOnScreen);
+            if (colIndex >= 0 && colIndex < COLS) {
+                handleRelease(colIndex);
+            }
+        }
+    } else {
+        const x = e.clientX - rect.left;
+        const colIndex = Math.floor(x / colWidthOnScreen);
+        if (colIndex >= 0 && colIndex < COLS) {
+            handleRelease(colIndex);
+        }
+    }
+}
+
 canvas.addEventListener('touchstart', handlePointerDown, { passive: false });
 canvas.addEventListener('mousedown', handlePointerDown);
+canvas.addEventListener('touchend', handlePointerUp);
+canvas.addEventListener('mouseup', handlePointerUp);
+canvas.addEventListener('mouseleave', handlePointerUp);
 
 // Socket Events
 socket.on('matchFound', (data) => {
@@ -258,8 +295,10 @@ function startGame() {
     multiResult.classList.add('hidden');
     
     // Initial tiles
+    let currentY = 0;
     for (let i = 0; i < 6; i++) {
-        spawnTile(-i * TILE_HEIGHT);
+        spawnTile(currentY);
+        currentY -= tiles[tiles.length - 1].height;
     }
     
     animationId = requestAnimationFrame(gameLoop);
@@ -267,11 +306,18 @@ function startGame() {
 
 function spawnTile(yPos) {
     const col = Math.floor(Math.random() * COLS);
+    const isLong = Math.random() < 0.2; // 20% chance for long tile
+    const height = isLong ? TILE_HEIGHT * (Math.floor(Math.random() * 3) + 2) : TILE_HEIGHT;
+    
     tiles.push({
         col: col,
         y: yPos,
+        height: height,
         clicked: false,
-        isError: false
+        isError: false,
+        isLong: isLong,
+        held: false,
+        completed: false
     });
 }
 
@@ -289,32 +335,34 @@ function gameLoop() {
 function update() {
     speed = 5 + Math.floor(score / 15); // Increase speed gradually
     
-    let lowestUnclicked = null;
-    
     for (let i = 0; i < tiles.length; i++) {
         let tile = tiles[i];
         tile.y += speed;
         
-        if (!tile.clicked && (lowestUnclicked === null || tile.y > lowestUnclicked.y)) {
-            lowestUnclicked = tile;
+        if (!tile.completed && !tile.held && tile.y > canvas.height) {
+            tile.isError = true;
+            gameOver("Missed a tile!");
+            return;
+        }
+        
+        if (tile.held && tile.y - tile.height >= canvas.height) {
+            tile.held = false;
+            tile.completed = true;
+            tile.clicked = true;
+            score += Math.floor(tile.height / TILE_HEIGHT); // Bonus for holding!
+            scoreDisplay.innerText = score;
         }
     }
     
-    // Check if the lowest unclicked tile passed the bottom
-    if (lowestUnclicked && lowestUnclicked.y > canvas.height) {
-        lowestUnclicked.isError = true;
-        gameOver("Missed a tile!");
-    }
-    
-    // Remove clicked tiles that are off screen
-    if (tiles[0] && tiles[0].y > canvas.height && tiles[0].clicked) {
+    // Remove completed tiles that are off screen
+    if (tiles[0] && tiles[0].y - tiles[0].height > canvas.height && tiles[0].completed) {
         tiles.shift();
     }
     
     // Spawn new tiles
     const lastTile = tiles[tiles.length - 1];
-    if (lastTile && lastTile.y > -TILE_HEIGHT) {
-        spawnTile(lastTile.y - TILE_HEIGHT);
+    if (lastTile && lastTile.y - lastTile.height > -TILE_HEIGHT) {
+        spawnTile(lastTile.y - lastTile.height);
     }
     
     if (isMultiplayer) {
@@ -330,18 +378,20 @@ function draw() {
         
         if (tile.isError) {
             ctx.fillStyle = 'red';
-        } else if (tile.clicked) {
+        } else if (tile.completed || tile.clicked) {
             ctx.fillStyle = '#ccc';
+        } else if (tile.held) {
+            ctx.fillStyle = '#add8e6';
         } else {
             ctx.fillStyle = 'black';
         }
         
-        ctx.fillRect(tile.col * COL_WIDTH, tile.y, COL_WIDTH, TILE_HEIGHT);
+        ctx.fillRect(tile.col * COL_WIDTH, tile.y - tile.height, COL_WIDTH, tile.height);
         
         // Tile border
         ctx.strokeStyle = '#999';
         ctx.lineWidth = 1;
-        ctx.strokeRect(tile.col * COL_WIDTH, tile.y, COL_WIDTH, TILE_HEIGHT);
+        ctx.strokeRect(tile.col * COL_WIDTH, tile.y - tile.height, COL_WIDTH, tile.height);
     }
 }
 
@@ -368,22 +418,24 @@ function drawBoard() {
 }
 
 function handleInput(colIndex) {
-    let lowestUnclickedIndex = -1;
-    let lowestUnclickedY = -Infinity;
+    let targetTile = null;
     
     for (let i = 0; i < tiles.length; i++) {
-        if (!tiles[i].clicked && tiles[i].y > lowestUnclickedY) {
-            lowestUnclickedY = tiles[i].y;
-            lowestUnclickedIndex = i;
+        if (!tiles[i].completed && !tiles[i].held) {
+            targetTile = tiles[i];
+            break;
         }
     }
     
-    if (lowestUnclickedIndex !== -1) {
-        let targetTile = tiles[lowestUnclickedIndex];
-        
-        if (targetTile.y + TILE_HEIGHT > 0) {
+    if (targetTile) {
+        if (targetTile.y > 0) { // tile is visible
             if (targetTile.col === colIndex) {
-                targetTile.clicked = true;
+                if (targetTile.isLong) {
+                    targetTile.held = true;
+                } else {
+                    targetTile.completed = true;
+                    targetTile.clicked = true;
+                }
                 score++;
                 scoreDisplay.innerText = score;
                 
@@ -394,10 +446,28 @@ function handleInput(colIndex) {
                 tiles.push({
                     col: colIndex,
                     y: targetTile.y,
-                    clicked: false,
+                    height: TILE_HEIGHT,
+                    completed: false,
                     isError: true
                 });
                 gameOver("Wrong key!");
+            }
+        }
+    }
+}
+
+function handleRelease(colIndex) {
+    for (let i = 0; i < tiles.length; i++) {
+        let t = tiles[i];
+        if (t.col === colIndex && t.held && !t.completed) {
+            t.held = false;
+            // Check if top edge has passed the bottom margin
+            if (t.y - t.height < canvas.height - 30) { 
+                t.isError = true;
+                gameOver("Released too early!");
+            } else {
+                t.completed = true;
+                t.clicked = true;
             }
         }
     }
