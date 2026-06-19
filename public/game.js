@@ -152,7 +152,7 @@ function gameLoop() {
 }
 
 function update() {
-    speed = 5 + Math.floor(score / 10); // Increase speed gradually
+    speed = 5 + Math.floor(score / 15); // Increase speed gradually
     
     let lowestUnclicked = null;
     
@@ -221,7 +221,7 @@ function drawBoard() {
     
     // Draw letters at bottom
     ctx.fillStyle = '#666';
-    ctx.font = '24px Arial';
+    ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'center';
     for (let i = 0; i < COLS; i++) {
         ctx.fillText(KEYS[i].toUpperCase(), i * COL_WIDTH + COL_WIDTH / 2, canvas.height - 20);
@@ -242,7 +242,6 @@ function handleInput(colIndex) {
     if (lowestUnclickedIndex !== -1) {
         let targetTile = tiles[lowestUnclickedIndex];
         
-        // Can only click if the tile is somewhat visible
         if (targetTile.y + TILE_HEIGHT > 0) {
             if (targetTile.col === colIndex) {
                 targetTile.clicked = true;
@@ -253,11 +252,9 @@ function handleInput(colIndex) {
                     socket.emit('updateScore', { room: currentRoom, score: score });
                 }
             } else {
-                // Wrong column clicked
-                // Find if there is a fake click to visualize error
                 tiles.push({
                     col: colIndex,
-                    y: targetTile.y, // approximate visual
+                    y: targetTile.y,
                     clicked: false,
                     isError: true
                 });
@@ -270,15 +267,17 @@ function handleInput(colIndex) {
 function gameOver(reason) {
     isPlaying = false;
     cancelAnimationFrame(animationId);
-    draw(); // Draw the error state
+    draw();
     
     setTimeout(() => {
         if (isMultiplayer) {
             socket.emit('playerDied', currentRoom);
             showGameOver(false, "あなたのミスです...負けました。");
         } else {
-            // Single player, save score
-            socket.emit('saveScore', { name: myName, score: score });
+            // Save score locally/on server
+            if (score > 0) {
+                socket.emit('saveScore', { name: myName, score: score });
+            }
             showGameOver(false, "");
         }
     }, 500);

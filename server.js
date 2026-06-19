@@ -66,15 +66,7 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = 80;
-// We can try to bind to port 80 if we have permissions, or use 3000
+const PORT = 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
-}).on('error', (err) => {
-    if (err.code === 'EACCES') {
-        console.log('Port 80 requires root privileges. Attempting port 3000...');
-        server.listen(3000, '0.0.0.0', () => {
-            console.log(`Server running on http://0.0.0.0:3000`);
-        });
-    }
 });
