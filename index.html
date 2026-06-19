@@ -37,7 +37,12 @@
             </div>
 
             <div id="ranking-screen" class="screen hidden">
-                <h2>ランキング</h2>
+                <h2 id="ranking-title">ランキング</h2>
+                <div style="margin-bottom: 10px;">
+                    <button id="btn-rank-normal" style="width: auto; padding: 8px 12px; font-size: 14px; margin: 0 5px;">Normal</button>
+                    <button id="btn-rank-hyper" style="width: auto; padding: 8px 12px; font-size: 14px; margin: 0 5px;">Hyper</button>
+                    <button id="btn-rank-another" style="width: auto; padding: 8px 12px; font-size: 14px; margin: 0 5px;">Another</button>
+                </div>
                 <ul id="ranking-list"></ul>
                 <button id="btn-close-ranking">閉じる</button>
             </div>
@@ -54,6 +59,6 @@
     </div>
     
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="game.js?v=2"></script>
+    <script src="game.js?v=3"></script>
 </body>
 </html>

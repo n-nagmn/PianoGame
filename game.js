@@ -124,9 +124,37 @@ btnRestart.addEventListener('click', () => {
     startScreen.classList.remove('hidden');
 });
 
+let currentRankingMode = 'normal';
+
+function updateRankingTitle() {
+    const title = document.getElementById('ranking-title');
+    if (currentRankingMode === 'normal') title.innerText = 'ランキング (Normal)';
+    if (currentRankingMode === 'hyper') title.innerText = 'ランキング (Hyper)';
+    if (currentRankingMode === 'another') title.innerText = 'ランキング (Another)';
+}
+
 btnRanking.addEventListener('click', () => {
-    const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
-    socket.emit('getRanking', modeVal);
+    currentRankingMode = document.querySelector('input[name="gameMode"]:checked').value;
+    updateRankingTitle();
+    socket.emit('getRanking', currentRankingMode);
+});
+
+document.getElementById('btn-rank-normal').addEventListener('click', () => {
+    currentRankingMode = 'normal';
+    updateRankingTitle();
+    socket.emit('getRanking', currentRankingMode);
+});
+
+document.getElementById('btn-rank-hyper').addEventListener('click', () => {
+    currentRankingMode = 'hyper';
+    updateRankingTitle();
+    socket.emit('getRanking', currentRankingMode);
+});
+
+document.getElementById('btn-rank-another').addEventListener('click', () => {
+    currentRankingMode = 'another';
+    updateRankingTitle();
+    socket.emit('getRanking', currentRankingMode);
 });
 
 btnCloseRanking.addEventListener('click', () => {
