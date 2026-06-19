@@ -75,8 +75,10 @@ drawBoard();
 
 // Load name from local storage
 const savedName = localStorage.getItem('playerName');
-if (savedName) {
+if (savedName && savedName !== 'Anonymous') {
     playerNameInput.value = savedName;
+} else {
+    playerNameInput.value = '';
 }
 
 // Mode Selection Change Event
