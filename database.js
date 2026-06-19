@@ -1,35 +1,33 @@
-const sqlite3 = require('sqlite3').verbose();
+const fs = require('fs');
 const path = require('path');
 
-const dbPath = path.resolve(__dirname, 'rankings.db');
-const db = new sqlite3.Database(dbPath);
+const dbPath = path.resolve(__dirname, 'rankings.json');
 
 function initDB() {
-    db.run(`CREATE TABLE IF NOT EXISTS rankings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        score INTEGER,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+    if (!fs.existsSync(dbPath)) {
+        fs.writeFileSync(dbPath, JSON.stringify([]));
+    }
 }
 
 function saveScore(name, score) {
-    db.run(`INSERT INTO rankings (name, score) VALUES (?, ?)`, [name, score], function(err) {
-        if (err) {
-            console.error('Error saving score:', err.message);
-        }
-    });
+    try {
+        const data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+        data.push({ name, score, timestamp: new Date().toISOString() });
+        fs.writeFileSync(dbPath, JSON.stringify(data));
+    } catch (err) {
+        console.error('Error saving score:', err.message);
+    }
 }
 
 function getTopRankings(limit, callback) {
-    db.all(`SELECT name, score FROM rankings ORDER BY score DESC LIMIT ?`, [limit], (err, rows) => {
-        if (err) {
-            console.error('Error getting rankings:', err.message);
-            callback([]);
-        } else {
-            callback(rows);
-        }
-    });
+    try {
+        const data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+        data.sort((a, b) => b.score - a.score);
+        callback(data.slice(0, limit));
+    } catch (err) {
+        console.error('Error getting rankings:', err.message);
+        callback([]);
+    }
 }
 
 module.exports = {
