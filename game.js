@@ -36,17 +36,28 @@ let currentMode = 'normal';
 
 function setMode(mode) {
     currentMode = mode;
+    let newWidth = 400;
+    
     if (mode === 'normal') {
         COLS = 4;
         KEYS = ['d', 'f', 'j', 'k'];
+        newWidth = 400;
     } else if (mode === 'hyper') {
         COLS = 6;
         KEYS = ['s', 'd', 'f', 'j', 'k', 'l'];
+        newWidth = 600;
     } else if (mode === 'another') {
         COLS = 8;
         KEYS = ['a', 's', 'd', 'f', 'j', 'k', 'l', '+'];
+        newWidth = 800;
     }
+    
+    canvas.width = newWidth;
+    document.getElementById('game-container').style.width = newWidth + 'px';
+    opponentCanvas.width = newWidth / 2;
+    
     COL_WIDTH = canvas.width / COLS;
+    drawBoard();
 }
 
 // Game state
@@ -67,6 +78,14 @@ const savedName = localStorage.getItem('playerName');
 if (savedName) {
     playerNameInput.value = savedName;
 }
+
+// Mode Selection Change Event
+const modeRadios = document.querySelectorAll('input[name="gameMode"]');
+modeRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        setMode(e.target.value);
+    });
+});
 
 // Events
 btnSingle.addEventListener('click', () => {
