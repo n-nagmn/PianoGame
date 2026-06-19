@@ -12,7 +12,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 db.initDB();
 
-let waitingPlayer = null;
+let waitingPlayers = {
+    normal: null,
+    hyper: null,
+    another: null
+};
 
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
@@ -29,25 +33,31 @@ io.on('connection', (socket) => {
         });
     });
 
-    socket.on('findMatch', (name) => {
-        socket.playerName = name;
-        if (waitingPlayer && waitingPlayer.id !== socket.id) {
+    socket.on('findMatch', (data) => {
+        const playerName = data.name || 'Anonymous';
+        const mode = data.mode || 'normal';
+        
+        socket.playerName = playerName;
+        socket.gameMode = mode;
+
+        if (waitingPlayers[mode] && waitingPlayers[mode] !== socket) {
+            const opponent = waitingPlayers[mode];
+            waitingPlayers[mode] = null;
+            
             // Match found
-            const room = 'room_' + waitingPlayer.id + '_' + socket.id;
+            const room = 'room_' + opponent.id + '_' + socket.id;
             socket.join(room);
-            waitingPlayer.join(room);
+            opponent.join(room);
             
-            io.to(room).emit('matchFound', room);
-            
-            waitingPlayer = null;
+            io.to(room).emit('matchFound', { room: room, mode: mode });
         } else {
-            waitingPlayer = socket;
+            waitingPlayers[mode] = socket;
         }
     });
 
     socket.on('cancelMatch', () => {
-        if (waitingPlayer && waitingPlayer.id === socket.id) {
-            waitingPlayer = null;
+        if (waitingPlayers[socket.gameMode] === socket) {
+            waitingPlayers[socket.gameMode] = null;
         }
     });
 
@@ -60,8 +70,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        if (waitingPlayer && waitingPlayer.id === socket.id) {
-            waitingPlayer = null;
+        if (waitingPlayers[socket.gameMode] === socket) {
+            waitingPlayers[socket.gameMode] = null;
         }
     });
 });

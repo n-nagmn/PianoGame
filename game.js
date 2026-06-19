@@ -28,10 +28,26 @@ const btnRestart = document.getElementById('btn-restart');
 const btnCloseRanking = document.getElementById('btn-close-ranking');
 
 // Game constants
-const COLS = 4;
-const COL_WIDTH = canvas.width / COLS;
+let COLS = 4;
+let COL_WIDTH = canvas.width / COLS;
 const TILE_HEIGHT = 150;
-const KEYS = ['d', 'f', 'j', 'k'];
+let KEYS = ['d', 'f', 'j', 'k'];
+let currentMode = 'normal';
+
+function setMode(mode) {
+    currentMode = mode;
+    if (mode === 'normal') {
+        COLS = 4;
+        KEYS = ['d', 'f', 'j', 'k'];
+    } else if (mode === 'hyper') {
+        COLS = 6;
+        KEYS = ['s', 'd', 'f', 'j', 'k', 'l'];
+    } else if (mode === 'another') {
+        COLS = 8;
+        KEYS = ['a', 's', 'd', 'f', 'j', 'k', 'l', '+'];
+    }
+    COL_WIDTH = canvas.width / COLS;
+}
 
 // Game state
 let tiles = [];
@@ -56,6 +72,10 @@ if (savedName) {
 btnSingle.addEventListener('click', () => {
     myName = playerNameInput.value || "Anonymous";
     localStorage.setItem('playerName', myName);
+    
+    const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
+    setMode(modeVal);
+    
     isMultiplayer = false;
     startScreen.classList.add('hidden');
     startGame();
@@ -64,10 +84,14 @@ btnSingle.addEventListener('click', () => {
 btnMulti.addEventListener('click', () => {
     myName = playerNameInput.value || "Anonymous";
     localStorage.setItem('playerName', myName);
+    
+    const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
+    setMode(modeVal);
+    
     isMultiplayer = true;
     startScreen.classList.add('hidden');
     waitingScreen.classList.remove('hidden');
-    socket.emit('findMatch', myName);
+    socket.emit('findMatch', { name: myName, mode: currentMode });
 });
 
 btnCancel.addEventListener('click', () => {
@@ -92,7 +116,9 @@ btnCloseRanking.addEventListener('click', () => {
 document.addEventListener('keydown', (e) => {
     if (!isPlaying) return;
     
-    const key = e.key.toLowerCase();
+    let key = e.key.toLowerCase();
+    if (key === ';') key = '+';
+    
     const colIndex = KEYS.indexOf(key);
     
     if (colIndex !== -1) {
@@ -101,8 +127,9 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Socket Events
-socket.on('matchFound', (room) => {
-    currentRoom = room;
+socket.on('matchFound', (data) => {
+    currentRoom = data.room;
+    setMode(data.mode);
     waitingScreen.classList.add('hidden');
     startGame();
 });
