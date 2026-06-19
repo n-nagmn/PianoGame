@@ -125,7 +125,7 @@ function startGame() {
     multiResult.classList.add('hidden');
     
     // Initial tiles
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
         spawnTile(-i * TILE_HEIGHT);
     }
     
