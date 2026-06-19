@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piano Tiles Clone</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div id="ui-layer">
+            <div id="start-screen" class="screen">
+                <h1>Piano Tiles</h1>
+                <p>操作: D, F, J, K キー</p>
+                <input type="text" id="playerName" placeholder="名前を入力">
+                <button id="btn-single">シングルプレイ</button>
+                <button id="btn-multi">オンライン対戦</button>
+                <button id="btn-ranking">ランキング</button>
+            </div>
+            
+            <div id="waiting-screen" class="screen hidden">
+                <h2>対戦相手を待機中...</h2>
+                <button id="btn-cancel">キャンセル</button>
+            </div>
+
+            <div id="game-over-screen" class="screen hidden">
+                <h2 id="go-title">Game Over</h2>
+                <p>スコア: <span id="final-score">0</span></p>
+                <p id="multi-result" class="hidden"></p>
+                <button id="btn-restart">戻る</button>
+            </div>
+
+            <div id="ranking-screen" class="screen hidden">
+                <h2>ランキング</h2>
+                <ul id="ranking-list"></ul>
+                <button id="btn-close-ranking">閉じる</button>
+            </div>
+            
+            <div id="score-display" class="hidden">0</div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
