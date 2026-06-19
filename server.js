@@ -23,12 +23,12 @@ io.on('connection', (socket) => {
 
     socket.on('saveScore', (data) => {
         if (data.name && data.score !== undefined) {
-            db.saveScore(data.name, data.score);
+            db.saveScore(data.name, data.score, data.mode || 'normal');
         }
     });
 
-    socket.on('getRanking', () => {
-        db.getTopRankings(10, (rows) => {
+    socket.on('getRanking', (mode) => {
+        db.getTopRankings(mode || 'normal', 10, (rows) => {
             socket.emit('rankingData', rows);
         });
     });

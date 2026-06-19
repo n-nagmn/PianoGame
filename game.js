@@ -125,7 +125,8 @@ btnRestart.addEventListener('click', () => {
 });
 
 btnRanking.addEventListener('click', () => {
-    socket.emit('getRanking');
+    const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
+    socket.emit('getRanking', modeVal);
 });
 
 btnCloseRanking.addEventListener('click', () => {
@@ -358,7 +359,7 @@ function gameOver(reason) {
         } else {
             // Save score locally/on server
             if (score > 0) {
-                socket.emit('saveScore', { name: myName, score: score });
+                socket.emit('saveScore', { name: myName, score: score, mode: currentMode });
             }
             showGameOver(false, "");
         }

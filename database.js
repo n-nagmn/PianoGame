@@ -9,21 +9,22 @@ function initDB() {
     }
 }
 
-function saveScore(name, score) {
+function saveScore(name, score, mode) {
     try {
         const data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-        data.push({ name, score, timestamp: new Date().toISOString() });
+        data.push({ name, score, mode: mode || 'normal', timestamp: new Date().toISOString() });
         fs.writeFileSync(dbPath, JSON.stringify(data));
     } catch (err) {
         console.error('Error saving score:', err.message);
     }
 }
 
-function getTopRankings(limit, callback) {
+function getTopRankings(mode, limit, callback) {
     try {
         const data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-        data.sort((a, b) => b.score - a.score);
-        callback(data.slice(0, limit));
+        const filtered = data.filter(d => (d.mode || 'normal') === mode);
+        filtered.sort((a, b) => b.score - a.score);
+        callback(filtered.slice(0, limit));
     } catch (err) {
         console.error('Error getting rankings:', err.message);
         callback([]);
