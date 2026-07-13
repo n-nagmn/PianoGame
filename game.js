@@ -45,7 +45,7 @@ let SHOW_JUDGEMENT_LINE = localStorage.getItem('pianoGameShowLine') === 'true';
 let LINE_OFFSET = parseInt(localStorage.getItem('pianoGameLineOffset'));
 if (isNaN(LINE_OFFSET)) LINE_OFFSET = 60;
 if (LINE_OFFSET < 0) LINE_OFFSET = 0;
-if (LINE_OFFSET > 400) LINE_OFFSET = 400;
+if (LINE_OFFSET > 800) LINE_OFFSET = 800;
 
 const defaultKeys = {
     normal: ['d', 'f', 'j', 'k'],
