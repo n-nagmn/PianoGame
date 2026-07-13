@@ -116,8 +116,6 @@ function setMode(mode) {
     }
     
     if (canvas.width !== userWidths[mode]) {
-        canvas.style.width = '';
-        opponentCanvas.style.width = '';
         canvas.width = userWidths[mode];
         document.getElementById('game-container').style.width = userWidths[mode] + 'px';
         opponentCanvas.width = userWidths[mode] / 2;
@@ -359,13 +357,10 @@ function openKeyConfig() {
     
     slider.oninput = updatePreview;
     widthSlider.oninput = (e) => {
-        const val = e.target.value;
-        widthVal.innerText = val;
-        document.getElementById('game-container').style.width = val + 'px';
-        canvas.style.width = val + 'px';
-        opponentCanvas.style.width = (val / 2) + 'px';
+        // Update label only during drag to prevent layout shift feedback loop
+        widthVal.innerText = e.target.value;
     };
-    widthSlider.onchange = updatePreview;
+    widthSlider.onchange = updatePreview; // Apply resize only on mouse release
     lineSlider.oninput = updatePreview;
     document.getElementById('show-judgement-line').onchange = updatePreview;
     document.querySelectorAll('.color-input').forEach(inp => inp.oninput = updatePreview);
