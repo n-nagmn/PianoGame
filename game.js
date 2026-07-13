@@ -36,8 +36,9 @@ const btnResetKeys = document.getElementById('btn-reset-keys');
 let COLS = 4;
 let COL_WIDTH = canvas.width / COLS;
 const TILE_PITCH = 150;
-let TILE_HEIGHT = parseInt(localStorage.getItem('pianoGameTileHeight')) || 150;
-if (TILE_HEIGHT < 75) TILE_HEIGHT = 75;
+let TILE_HEIGHT = parseInt(localStorage.getItem('pianoGameTileHeight'));
+if (isNaN(TILE_HEIGHT)) TILE_HEIGHT = 150;
+if (TILE_HEIGHT < 0) TILE_HEIGHT = 0;
 if (TILE_HEIGHT > 150) TILE_HEIGHT = 150;
 
 const defaultKeys = {
