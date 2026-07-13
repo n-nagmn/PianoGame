@@ -170,7 +170,6 @@ button:hover {
 .key-config-row {
     display: flex;
     gap: 5px;
-    flex-wrap: wrap;
     justify-content: center;
 }
 
