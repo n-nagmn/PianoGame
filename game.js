@@ -73,9 +73,9 @@ let COLORS = [...userColors.normal];
 let currentMode = 'normal';
 
 function updateModeLabels() {
-    document.getElementById('label-normal').innerText = `Normal (4鍵: ${userKeys.normal.map(k => k === ' ' ? '␣' : k).join('').toUpperCase()})`;
-    document.getElementById('label-hyper').innerText = `Hyper (6鍵: ${userKeys.hyper.map(k => k === ' ' ? '␣' : k).join('').toUpperCase()})`;
-    document.getElementById('label-another').innerText = `Another (8鍵: ${userKeys.another.map(k => k === ' ' ? '␣' : k).join('').toUpperCase()})`;
+    document.getElementById('label-normal').innerText = `Normal (4鍵: ${userKeys.normal.map(k => k === ' ' ? '␣' : (k === 'shift' ? '⇧' : k)).join('').toUpperCase()})`;
+    document.getElementById('label-hyper').innerText = `Hyper (6鍵: ${userKeys.hyper.map(k => k === ' ' ? '␣' : (k === 'shift' ? '⇧' : k)).join('').toUpperCase()})`;
+    document.getElementById('label-another').innerText = `Another (8鍵: ${userKeys.another.map(k => k === ' ' ? '␣' : (k === 'shift' ? '⇧' : k)).join('').toUpperCase()})`;
 }
 
 function setMode(mode) {
@@ -225,7 +225,7 @@ function createKeyInputs(mode, count) {
         input.type = 'text';
         input.className = 'key-input';
         let initialKey = userKeys[mode][i];
-        input.value = initialKey === ' ' ? '␣' : initialKey.toUpperCase();
+        input.value = initialKey === ' ' ? '␣' : (initialKey === 'shift' ? 'SHIFT' : initialKey.toUpperCase());
         input.dataset.keyValue = initialKey;
         
         input.addEventListener('keydown', (e) => {
@@ -233,8 +233,8 @@ function createKeyInputs(mode, count) {
             e.preventDefault();
             let key = e.key.toLowerCase();
             if (key === ';') key = '+';
-            if (key.length === 1) {
-                input.value = key === ' ' ? '␣' : key.toUpperCase();
+            if (key.length === 1 || key === 'shift') {
+                input.value = key === ' ' ? '␣' : (key === 'shift' ? 'SHIFT' : key.toUpperCase());
                 input.dataset.keyValue = key;
             }
         });
@@ -502,7 +502,7 @@ function drawBoard() {
     ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'center';
     for (let i = 0; i < COLS; i++) {
-        let keyText = KEYS[i] === ' ' ? '␣' : KEYS[i].toUpperCase();
+        let keyText = KEYS[i] === ' ' ? '␣' : (KEYS[i] === 'shift' ? 'SHIFT' : KEYS[i].toUpperCase());
         ctx.fillText(keyText, i * COL_WIDTH + COL_WIDTH / 2, canvas.height - 20);
     }
 }

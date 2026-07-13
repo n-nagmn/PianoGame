@@ -173,7 +173,7 @@ button:hover {
 }
 
 .key-input {
-    width: 35px !important;
+    width: 50px !important;
     height: 35px;
     padding: 0 !important;
     margin-bottom: 0 !important;
@@ -185,7 +185,7 @@ button:hover {
 }
 
 .color-input {
-    width: 35px;
+    width: 50px;
     height: 25px;
     padding: 0;
     border: none;
