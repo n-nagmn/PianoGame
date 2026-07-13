@@ -271,6 +271,20 @@ function openKeyConfig() {
     
     const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
     document.getElementById(`config-section-${modeVal}`).classList.remove('hidden');
+    
+    const configRadios = document.querySelectorAll('input[name="configMode"]');
+    configRadios.forEach(r => {
+        if (r.value === modeVal) r.checked = true;
+        r.onchange = (e) => {
+            document.getElementById('config-section-normal').classList.add('hidden');
+            document.getElementById('config-section-hyper').classList.add('hidden');
+            document.getElementById('config-section-another').classList.add('hidden');
+            document.getElementById(`config-section-${e.target.value}`).classList.remove('hidden');
+            
+            document.querySelector(`input[name="gameMode"][value="${e.target.value}"]`).checked = true;
+            updatePreview();
+        };
+    });
 
     const slider = document.getElementById('tile-length-slider');
     const lengthVal = document.getElementById('tile-length-val');
@@ -301,7 +315,8 @@ function openKeyConfig() {
             userKeys[mode] = Array.from(keyInputs).map(inp => inp.dataset.keyValue);
         });
         
-        setMode(modeVal);
+        const configModeVal = document.querySelector('input[name="configMode"]:checked').value;
+        setMode(configModeVal);
         
         tiles = [];
         for (let i = 0; i < 4; i++) {
@@ -352,7 +367,9 @@ btnSaveKeys.addEventListener('click', () => {
     localStorage.setItem('pianoGameKeys', JSON.stringify(userKeys));
     localStorage.setItem('pianoGameColors', JSON.stringify(userColors));
     updateModeLabels();
-    setMode(currentMode);
+    const configModeVal = document.querySelector('input[name="configMode"]:checked').value;
+    setMode(configModeVal);
+    currentMode = configModeVal;
     
     tiles = [];
     draw();
@@ -546,7 +563,7 @@ function update() {
     }
     
     // Check if the lowest unclicked tile passed the bottom
-    if (lowestUnclicked && lowestUnclicked.y > canvas.height) {
+    if (lowestUnclicked && lowestUnclicked.y + (TILE_PITCH - TILE_HEIGHT) > canvas.height) {
         lowestUnclicked.isError = true;
         gameOver("Missed a tile!");
     }
@@ -581,12 +598,13 @@ function draw() {
             ctx.fillStyle = COLORS[tile.col] || 'black';
         }
         
-        ctx.fillRect(tile.col * COL_WIDTH, tile.y, COL_WIDTH, TILE_HEIGHT);
+        let drawY = tile.y + (TILE_PITCH - TILE_HEIGHT);
+        ctx.fillRect(tile.col * COL_WIDTH, drawY, COL_WIDTH, TILE_HEIGHT);
         
         // Tile border
         ctx.strokeStyle = '#999';
         ctx.lineWidth = 1;
-        ctx.strokeRect(tile.col * COL_WIDTH, tile.y, COL_WIDTH, TILE_HEIGHT);
+        ctx.strokeRect(tile.col * COL_WIDTH, drawY, COL_WIDTH, TILE_HEIGHT);
     }
 }
 
@@ -636,7 +654,7 @@ function handleInput(colIndex) {
     if (lowestUnclickedIndex !== -1) {
         let targetTile = tiles[lowestUnclickedIndex];
         
-        if (targetTile.y + TILE_HEIGHT > 0) {
+        if (targetTile.y + TILE_PITCH > 0) {
             if (targetTile.col === colIndex) {
                 targetTile.clicked = true;
                 score++;
@@ -714,8 +732,9 @@ function drawOpponentBoard(oppTiles) {
             oppCtx.fillStyle = '#ddd';
         }
         if (tile.isError) oppCtx.fillStyle = 'red';
-        oppCtx.fillRect(tile.col * (COL_WIDTH * scale), tile.y * scale, COL_WIDTH * scale, TILE_HEIGHT * scale);
+        let drawY = (tile.y + (TILE_PITCH - TILE_HEIGHT)) * scale;
+        oppCtx.fillRect(tile.col * (COL_WIDTH * scale), drawY, COL_WIDTH * scale, TILE_HEIGHT * scale);
         oppCtx.strokeStyle = '#999';
-        oppCtx.strokeRect(tile.col * (COL_WIDTH * scale), tile.y * scale, COL_WIDTH * scale, TILE_HEIGHT * scale);
+        oppCtx.strokeRect(tile.col * (COL_WIDTH * scale), drawY, COL_WIDTH * scale, TILE_HEIGHT * scale);
     });
 }

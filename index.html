@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Piano Tiles Clone</title>
-    <link rel="stylesheet" href="style.css?v=12">
+    <link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
     <div id="wrapper">
@@ -54,7 +54,13 @@
         </div> <!-- Close game-container -->
         
         <div id="key-config-screen" class="hidden" style="background-color: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; width: 350px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; max-height: 800px; border: 1px solid #555;">
-            <h2 style="margin-top: 0;">キー・カラー・長さ設定</h2>
+            <h2 style="margin-top: 0; font-size: 22px;">キー・カラー・長さ設定</h2>
+            
+            <div style="text-align: left; margin-bottom: 15px; width: 90%; color: white;">
+                <label style="margin-right: 10px; cursor: pointer;"><input type="radio" name="configMode" value="normal"> 4鍵</label>
+                <label style="margin-right: 10px; cursor: pointer;"><input type="radio" name="configMode" value="hyper"> 6鍵</label>
+                <label style="cursor: pointer;"><input type="radio" name="configMode" value="another"> 8鍵</label>
+            </div>
             
             <div style="text-align: left; margin-bottom: 15px; width: 90%;">
                 <label style="color: white; font-size: 14px; display: block; margin-bottom: 5px;">タイルの長さ: <span id="tile-length-val">150</span></label>
@@ -99,6 +105,6 @@
     </div>
     
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="game.js?v=18"></script>
+    <script src="game.js?v=19"></script>
 </body>
 </html>
