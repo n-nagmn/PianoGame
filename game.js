@@ -116,6 +116,8 @@ function setMode(mode) {
     }
     
     if (canvas.width !== userWidths[mode]) {
+        canvas.style.width = '';
+        opponentCanvas.style.width = '';
         canvas.width = userWidths[mode];
         document.getElementById('game-container').style.width = userWidths[mode] + 'px';
         opponentCanvas.width = userWidths[mode] / 2;
@@ -356,7 +358,14 @@ function openKeyConfig() {
     };
     
     slider.oninput = updatePreview;
-    widthSlider.oninput = updatePreview;
+    widthSlider.oninput = (e) => {
+        const val = e.target.value;
+        widthVal.innerText = val;
+        document.getElementById('game-container').style.width = val + 'px';
+        canvas.style.width = val + 'px';
+        opponentCanvas.style.width = (val / 2) + 'px';
+    };
+    widthSlider.onchange = updatePreview;
     lineSlider.oninput = updatePreview;
     document.getElementById('show-judgement-line').onchange = updatePreview;
     document.querySelectorAll('.color-input').forEach(inp => inp.oninput = updatePreview);
