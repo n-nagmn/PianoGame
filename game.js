@@ -115,9 +115,11 @@ function setMode(mode) {
         COLORS = [...userColors.another];
     }
     
-    canvas.width = userWidths[mode];
-    document.getElementById('game-container').style.width = userWidths[mode] + 'px';
-    opponentCanvas.width = userWidths[mode] / 2;
+    if (canvas.width !== userWidths[mode]) {
+        canvas.width = userWidths[mode];
+        document.getElementById('game-container').style.width = userWidths[mode] + 'px';
+        opponentCanvas.width = userWidths[mode] / 2;
+    }
     
     COL_WIDTH = canvas.width / COLS;
     drawBoard();
