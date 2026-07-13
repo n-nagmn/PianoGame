@@ -43,19 +43,33 @@ const defaultKeys = {
     another: ['a', 's', 'd', 'f', 'j', 'k', 'l', '+']
 };
 
+const defaultColors = {
+    normal: ['#000000', '#000000', '#000000', '#000000'],
+    hyper: ['#000000', '#000000', '#000000', '#000000', '#000000', '#000000'],
+    another: ['#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000']
+};
+
 let storedKeys = null;
+let storedColors = null;
 try {
     storedKeys = JSON.parse(localStorage.getItem('pianoGameKeys'));
+    storedColors = JSON.parse(localStorage.getItem('pianoGameColors'));
 } catch (e) {}
 
 let userKeys = storedKeys ? Object.assign({}, defaultKeys, storedKeys) : JSON.parse(JSON.stringify(defaultKeys));
+let userColors = storedColors ? Object.assign({}, defaultColors, storedColors) : JSON.parse(JSON.stringify(defaultColors));
 
 // Ensure array lengths are correct if data was corrupted
 if (!Array.isArray(userKeys.normal) || userKeys.normal.length !== 4) userKeys.normal = [...defaultKeys.normal];
 if (!Array.isArray(userKeys.hyper) || userKeys.hyper.length !== 6) userKeys.hyper = [...defaultKeys.hyper];
 if (!Array.isArray(userKeys.another) || userKeys.another.length !== 8) userKeys.another = [...defaultKeys.another];
 
+if (!Array.isArray(userColors.normal) || userColors.normal.length !== 4) userColors.normal = [...defaultColors.normal];
+if (!Array.isArray(userColors.hyper) || userColors.hyper.length !== 6) userColors.hyper = [...defaultColors.hyper];
+if (!Array.isArray(userColors.another) || userColors.another.length !== 8) userColors.another = [...defaultColors.another];
+
 let KEYS = [...userKeys.normal];
+let COLORS = [...userColors.normal];
 let currentMode = 'normal';
 
 function updateModeLabels() {
@@ -71,14 +85,17 @@ function setMode(mode) {
     if (mode === 'normal') {
         COLS = 4;
         KEYS = [...userKeys.normal];
+        COLORS = [...userColors.normal];
         newWidth = 400;
     } else if (mode === 'hyper') {
         COLS = 6;
         KEYS = [...userKeys.hyper];
+        COLORS = [...userColors.hyper];
         newWidth = 500;
     } else if (mode === 'another') {
         COLS = 8;
         KEYS = [...userKeys.another];
+        COLORS = [...userColors.another];
         newWidth = 600;
     }
     
@@ -198,6 +215,12 @@ function createKeyInputs(mode, count) {
     const container = document.getElementById(`config-${mode}`);
     container.innerHTML = '';
     for (let i = 0; i < count; i++) {
+        const colDiv = document.createElement('div');
+        colDiv.style.display = 'flex';
+        colDiv.style.flexDirection = 'column';
+        colDiv.style.alignItems = 'center';
+        colDiv.style.gap = '2px';
+
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'key-input';
@@ -216,7 +239,14 @@ function createKeyInputs(mode, count) {
             }
         });
         
-        container.appendChild(input);
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.className = 'color-input';
+        colorInput.value = userColors[mode][i];
+        
+        colDiv.appendChild(input);
+        colDiv.appendChild(colorInput);
+        container.appendChild(colDiv);
     }
 }
 
@@ -232,10 +262,14 @@ btnKeyConfig.addEventListener('click', openKeyConfig);
 
 btnSaveKeys.addEventListener('click', () => {
     ['normal', 'hyper', 'another'].forEach(mode => {
-        const inputs = document.querySelectorAll(`#config-${mode} .key-input`);
-        userKeys[mode] = Array.from(inputs).map(inp => inp.dataset.keyValue);
+        const keyInputs = document.querySelectorAll(`#config-${mode} .key-input`);
+        userKeys[mode] = Array.from(keyInputs).map(inp => inp.dataset.keyValue);
+        
+        const colorInputs = document.querySelectorAll(`#config-${mode} .color-input`);
+        userColors[mode] = Array.from(colorInputs).map(inp => inp.value);
     });
     localStorage.setItem('pianoGameKeys', JSON.stringify(userKeys));
+    localStorage.setItem('pianoGameColors', JSON.stringify(userColors));
     updateModeLabels();
     setMode(currentMode);
     keyConfigScreen.classList.add('hidden');
@@ -249,6 +283,7 @@ btnCancelKeys.addEventListener('click', () => {
 
 btnResetKeys.addEventListener('click', () => {
     userKeys = JSON.parse(JSON.stringify(defaultKeys));
+    userColors = JSON.parse(JSON.stringify(defaultColors));
     openKeyConfig();
 });
 
@@ -437,7 +472,7 @@ function draw() {
         } else if (tile.clicked) {
             ctx.fillStyle = '#ccc';
         } else {
-            ctx.fillStyle = 'black';
+            ctx.fillStyle = COLORS[tile.col] || 'black';
         }
         
         ctx.fillRect(tile.col * COL_WIDTH, tile.y, COL_WIDTH, TILE_HEIGHT);

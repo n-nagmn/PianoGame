@@ -183,3 +183,11 @@ button:hover {
     background-color: white;
     color: black;
 }
+
+.color-input {
+    width: 35px;
+    height: 25px;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+}
