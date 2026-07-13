@@ -273,32 +273,55 @@ function openKeyConfig() {
     document.getElementById(`config-section-${modeVal}`).classList.remove('hidden');
 
     const slider = document.getElementById('tile-length-slider');
-    const preview = document.getElementById('tile-preview');
     const lengthVal = document.getElementById('tile-length-val');
-    
     slider.value = TILE_HEIGHT;
     lengthVal.innerText = TILE_HEIGHT;
-    preview.style.height = TILE_HEIGHT + 'px';
     
-    slider.oninput = (e) => {
-        lengthVal.innerText = e.target.value;
-        preview.style.height = e.target.value + 'px';
-    };
-
     document.getElementById('show-judgement-line').checked = SHOW_JUDGEMENT_LINE;
     
     const lineSlider = document.getElementById('line-offset-slider');
     const lineVal = document.getElementById('line-offset-val');
-    const linePreview = document.getElementById('line-preview');
-    
     lineSlider.value = LINE_OFFSET;
     lineVal.innerText = LINE_OFFSET;
-    linePreview.style.bottom = (LINE_OFFSET / 2) + 'px';
     
-    lineSlider.oninput = (e) => {
-        lineVal.innerText = e.target.value;
-        linePreview.style.bottom = (e.target.value / 2) + 'px';
+    const updatePreview = () => {
+        TILE_HEIGHT = parseInt(slider.value);
+        lengthVal.innerText = TILE_HEIGHT;
+        
+        SHOW_JUDGEMENT_LINE = document.getElementById('show-judgement-line').checked;
+        
+        LINE_OFFSET = parseInt(lineSlider.value);
+        lineVal.innerText = LINE_OFFSET;
+        
+        ['normal', 'hyper', 'another'].forEach(mode => {
+            const colorInputs = document.querySelectorAll(`#config-${mode} .color-input`);
+            userColors[mode] = Array.from(colorInputs).map(inp => inp.value);
+            
+            const keyInputs = document.querySelectorAll(`#config-${mode} .key-input`);
+            userKeys[mode] = Array.from(keyInputs).map(inp => inp.dataset.keyValue);
+        });
+        
+        setMode(modeVal);
+        
+        tiles = [];
+        for (let i = 0; i < 4; i++) {
+            tiles.push({
+                col: i % COLS,
+                y: canvas.height - 150 - (i * TILE_PITCH),
+                clicked: false,
+                isError: false
+            });
+        }
+        draw();
     };
+    
+    slider.oninput = updatePreview;
+    lineSlider.oninput = updatePreview;
+    document.getElementById('show-judgement-line').onchange = updatePreview;
+    document.querySelectorAll('.color-input').forEach(inp => inp.oninput = updatePreview);
+    document.querySelectorAll('.key-input').forEach(inp => inp.onkeyup = updatePreview);
+    
+    updatePreview();
 
     startScreen.classList.add('hidden');
     keyConfigScreen.classList.remove('hidden');
@@ -330,11 +353,36 @@ btnSaveKeys.addEventListener('click', () => {
     localStorage.setItem('pianoGameColors', JSON.stringify(userColors));
     updateModeLabels();
     setMode(currentMode);
+    
+    tiles = [];
+    draw();
+    
     keyConfigScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
 });
 
 btnCancelKeys.addEventListener('click', () => {
+    try {
+        const sk = JSON.parse(localStorage.getItem('pianoGameKeys'));
+        if (sk) userKeys = Object.assign({}, defaultKeys, sk);
+        
+        const sc = JSON.parse(localStorage.getItem('pianoGameColors'));
+        if (sc) userColors = Object.assign({}, defaultColors, sc);
+    } catch (e) {}
+    
+    TILE_HEIGHT = parseInt(localStorage.getItem('pianoGameTileHeight'));
+    if (isNaN(TILE_HEIGHT)) TILE_HEIGHT = 150;
+    if (TILE_HEIGHT < 0) TILE_HEIGHT = 0;
+    
+    SHOW_JUDGEMENT_LINE = localStorage.getItem('pianoGameShowLine') === 'true';
+    
+    LINE_OFFSET = parseInt(localStorage.getItem('pianoGameLineOffset'));
+    if (isNaN(LINE_OFFSET)) LINE_OFFSET = 60;
+    
+    setMode(currentMode);
+    tiles = [];
+    draw();
+
     keyConfigScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
 });
