@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Piano Tiles Clone</title>
-    <link rel="stylesheet" href="style.css?v=15">
+    <link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
     <div id="wrapper">
@@ -67,6 +67,11 @@
                 <input type="range" id="tile-length-slider" min="0" max="150" value="150" style="width: 100%;">
             </div>
             
+            <div style="text-align: left; margin-bottom: 15px; width: 90%;">
+                <label style="color: white; font-size: 14px; display: block; margin-bottom: 5px;">プレイ画面の横幅: <span id="board-width-val">400</span>px</label>
+                <input type="range" id="board-width-slider" min="200" max="1200" step="10" value="400" style="width: 100%;">
+            </div>
+            
             <div style="text-align: left; margin-bottom: 20px; width: 90%;">
                 <label style="color: white; font-size: 14px; cursor: pointer; display: block; margin-bottom: 10px;">
                     <input type="checkbox" id="show-judgement-line"> たたく位置の基準線（横線）を表示する
@@ -105,6 +110,6 @@
     </div>
     
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="game.js?v=21"></script>
+    <script src="game.js?v=22"></script>
 </body>
 </html>

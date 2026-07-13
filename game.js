@@ -61,13 +61,22 @@ const defaultColors = {
 
 let storedKeys = null;
 let storedColors = null;
+let storedWidths = null;
 try {
     storedKeys = JSON.parse(localStorage.getItem('pianoGameKeys'));
     storedColors = JSON.parse(localStorage.getItem('pianoGameColors'));
+    storedWidths = JSON.parse(localStorage.getItem('pianoGameWidths'));
 } catch (e) {}
+
+const defaultWidths = {
+    normal: 400,
+    hyper: 500,
+    another: 600
+};
 
 let userKeys = storedKeys ? Object.assign({}, defaultKeys, storedKeys) : JSON.parse(JSON.stringify(defaultKeys));
 let userColors = storedColors ? Object.assign({}, defaultColors, storedColors) : JSON.parse(JSON.stringify(defaultColors));
+let userWidths = storedWidths ? Object.assign({}, defaultWidths, storedWidths) : JSON.parse(JSON.stringify(defaultWidths));
 
 // Ensure array lengths are correct if data was corrupted
 if (!Array.isArray(userKeys.normal) || userKeys.normal.length !== 4) userKeys.normal = [...defaultKeys.normal];
@@ -96,22 +105,19 @@ function setMode(mode) {
         COLS = 4;
         KEYS = [...userKeys.normal];
         COLORS = [...userColors.normal];
-        newWidth = 400;
     } else if (mode === 'hyper') {
         COLS = 6;
         KEYS = [...userKeys.hyper];
         COLORS = [...userColors.hyper];
-        newWidth = 500;
     } else if (mode === 'another') {
         COLS = 8;
         KEYS = [...userKeys.another];
         COLORS = [...userColors.another];
-        newWidth = 600;
     }
     
-    canvas.width = newWidth;
-    document.getElementById('game-container').style.width = newWidth + 'px';
-    opponentCanvas.width = newWidth / 2;
+    canvas.width = userWidths[mode];
+    document.getElementById('game-container').style.width = userWidths[mode] + 'px';
+    opponentCanvas.width = userWidths[mode] / 2;
     
     COL_WIDTH = canvas.width / COLS;
     drawBoard();
@@ -273,6 +279,17 @@ function openKeyConfig() {
     document.getElementById(`config-section-${modeVal}`).classList.remove('hidden');
     
     const configRadios = document.querySelectorAll('input[name="configMode"]');
+    
+    const slider = document.getElementById('tile-length-slider');
+    const lengthVal = document.getElementById('tile-length-val');
+    slider.value = TILE_HEIGHT;
+    lengthVal.innerText = TILE_HEIGHT;
+    
+    const widthSlider = document.getElementById('board-width-slider');
+    const widthVal = document.getElementById('board-width-val');
+    widthSlider.value = userWidths[modeVal];
+    widthVal.innerText = userWidths[modeVal];
+    
     configRadios.forEach(r => {
         if (r.value === modeVal) r.checked = true;
         r.onchange = (e) => {
@@ -282,14 +299,13 @@ function openKeyConfig() {
             document.getElementById(`config-section-${e.target.value}`).classList.remove('hidden');
             
             document.querySelector(`input[name="gameMode"][value="${e.target.value}"]`).checked = true;
+            
+            widthSlider.value = userWidths[e.target.value];
+            widthVal.innerText = userWidths[e.target.value];
+            
             updatePreview();
         };
     });
-
-    const slider = document.getElementById('tile-length-slider');
-    const lengthVal = document.getElementById('tile-length-val');
-    slider.value = TILE_HEIGHT;
-    lengthVal.innerText = TILE_HEIGHT;
     
     document.getElementById('show-judgement-line').checked = SHOW_JUDGEMENT_LINE;
     
@@ -306,6 +322,10 @@ function openKeyConfig() {
         
         LINE_OFFSET = parseInt(lineSlider.value);
         lineVal.innerText = LINE_OFFSET;
+        
+        const configModeVal = document.querySelector('input[name="configMode"]:checked').value;
+        userWidths[configModeVal] = parseInt(widthSlider.value);
+        widthVal.innerText = userWidths[configModeVal];
         
         ['normal', 'hyper', 'another'].forEach(mode => {
             const colorInputs = document.querySelectorAll(`#config-${mode} .color-input`);
@@ -331,6 +351,7 @@ function openKeyConfig() {
     };
     
     slider.oninput = updatePreview;
+    widthSlider.oninput = updatePreview;
     lineSlider.oninput = updatePreview;
     document.getElementById('show-judgement-line').onchange = updatePreview;
     document.querySelectorAll('.color-input').forEach(inp => inp.oninput = updatePreview);
@@ -366,6 +387,7 @@ btnSaveKeys.addEventListener('click', () => {
     
     localStorage.setItem('pianoGameKeys', JSON.stringify(userKeys));
     localStorage.setItem('pianoGameColors', JSON.stringify(userColors));
+    localStorage.setItem('pianoGameWidths', JSON.stringify(userWidths));
     updateModeLabels();
     const configModeVal = document.querySelector('input[name="configMode"]:checked').value;
     setMode(configModeVal);
@@ -385,6 +407,9 @@ btnCancelKeys.addEventListener('click', () => {
         
         const sc = JSON.parse(localStorage.getItem('pianoGameColors'));
         if (sc) userColors = Object.assign({}, defaultColors, sc);
+        
+        const sw = JSON.parse(localStorage.getItem('pianoGameWidths'));
+        if (sw) userWidths = Object.assign({}, defaultWidths, sw);
     } catch (e) {}
     
     TILE_HEIGHT = parseInt(localStorage.getItem('pianoGameTileHeight'));
@@ -407,6 +432,7 @@ btnCancelKeys.addEventListener('click', () => {
 btnResetKeys.addEventListener('click', () => {
     userKeys = JSON.parse(JSON.stringify(defaultKeys));
     userColors = JSON.parse(JSON.stringify(defaultColors));
+    userWidths = JSON.parse(JSON.stringify(defaultWidths));
     openKeyConfig();
 });
 
