@@ -316,39 +316,43 @@ function openKeyConfig() {
     lineSlider.value = LINE_OFFSET;
     lineVal.innerText = LINE_OFFSET;
     
+    let previewAnimationFrame = null;
     const updatePreview = () => {
-        TILE_HEIGHT = parseInt(slider.value);
-        lengthVal.innerText = TILE_HEIGHT;
-        
-        SHOW_JUDGEMENT_LINE = document.getElementById('show-judgement-line').checked;
-        
-        LINE_OFFSET = parseInt(lineSlider.value);
-        lineVal.innerText = LINE_OFFSET;
-        
-        const configModeVal = document.querySelector('input[name="configMode"]:checked').value;
-        userWidths[configModeVal] = parseInt(widthSlider.value);
-        widthVal.innerText = userWidths[configModeVal];
-        
-        ['normal', 'hyper', 'another'].forEach(mode => {
-            const colorInputs = document.querySelectorAll(`#config-${mode} .color-input`);
-            userColors[mode] = Array.from(colorInputs).map(inp => inp.value);
+        if (previewAnimationFrame) cancelAnimationFrame(previewAnimationFrame);
+        previewAnimationFrame = requestAnimationFrame(() => {
+            TILE_HEIGHT = parseInt(slider.value);
+            lengthVal.innerText = TILE_HEIGHT;
             
-            const keyInputs = document.querySelectorAll(`#config-${mode} .key-input`);
-            userKeys[mode] = Array.from(keyInputs).map(inp => inp.dataset.keyValue);
-        });
-        
-        setMode(configModeVal);
-        
-        tiles = [];
-        for (let i = 0; i < 4; i++) {
-            tiles.push({
-                col: i % COLS,
-                y: canvas.height - 150 - (i * TILE_PITCH),
-                clicked: false,
-                isError: false
+            SHOW_JUDGEMENT_LINE = document.getElementById('show-judgement-line').checked;
+            
+            LINE_OFFSET = parseInt(lineSlider.value);
+            lineVal.innerText = LINE_OFFSET;
+            
+            const configModeVal = document.querySelector('input[name="configMode"]:checked').value;
+            userWidths[configModeVal] = parseInt(widthSlider.value);
+            widthVal.innerText = userWidths[configModeVal];
+            
+            ['normal', 'hyper', 'another'].forEach(mode => {
+                const colorInputs = document.querySelectorAll(`#config-${mode} .color-input`);
+                userColors[mode] = Array.from(colorInputs).map(inp => inp.value);
+                
+                const keyInputs = document.querySelectorAll(`#config-${mode} .key-input`);
+                userKeys[mode] = Array.from(keyInputs).map(inp => inp.dataset.keyValue);
             });
-        }
-        draw();
+            
+            setMode(configModeVal);
+            
+            tiles = [];
+            for (let i = 0; i < 4; i++) {
+                tiles.push({
+                    col: i % COLS,
+                    y: canvas.height - 150 - (i * TILE_PITCH),
+                    clicked: false,
+                    isError: false
+                });
+            }
+            draw();
+        });
     };
     
     slider.oninput = updatePreview;
