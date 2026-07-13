@@ -42,6 +42,10 @@ if (TILE_HEIGHT < 0) TILE_HEIGHT = 0;
 if (TILE_HEIGHT > 150) TILE_HEIGHT = 150;
 
 let SHOW_JUDGEMENT_LINE = localStorage.getItem('pianoGameShowLine') === 'true';
+let LINE_OFFSET = parseInt(localStorage.getItem('pianoGameLineOffset'));
+if (isNaN(LINE_OFFSET)) LINE_OFFSET = 60;
+if (LINE_OFFSET < 0) LINE_OFFSET = 0;
+if (LINE_OFFSET > 400) LINE_OFFSET = 400;
 
 const defaultKeys = {
     normal: ['d', 'f', 'j', 'k'],
@@ -282,6 +286,19 @@ function openKeyConfig() {
     };
 
     document.getElementById('show-judgement-line').checked = SHOW_JUDGEMENT_LINE;
+    
+    const lineSlider = document.getElementById('line-offset-slider');
+    const lineVal = document.getElementById('line-offset-val');
+    const linePreview = document.getElementById('line-preview');
+    
+    lineSlider.value = LINE_OFFSET;
+    lineVal.innerText = LINE_OFFSET;
+    linePreview.style.bottom = (LINE_OFFSET / 2) + 'px';
+    
+    lineSlider.oninput = (e) => {
+        lineVal.innerText = e.target.value;
+        linePreview.style.bottom = (e.target.value / 2) + 'px';
+    };
 
     startScreen.classList.add('hidden');
     keyConfigScreen.classList.remove('hidden');
@@ -304,6 +321,10 @@ btnSaveKeys.addEventListener('click', () => {
     
     SHOW_JUDGEMENT_LINE = document.getElementById('show-judgement-line').checked;
     localStorage.setItem('pianoGameShowLine', SHOW_JUDGEMENT_LINE);
+    
+    const lineSlider = document.getElementById('line-offset-slider');
+    LINE_OFFSET = parseInt(lineSlider.value);
+    localStorage.setItem('pianoGameLineOffset', LINE_OFFSET);
     
     localStorage.setItem('pianoGameKeys', JSON.stringify(userKeys));
     localStorage.setItem('pianoGameColors', JSON.stringify(userColors));
@@ -547,8 +568,8 @@ function drawBoard() {
         ctx.strokeStyle = '#ff4081';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(0, canvas.height - 60);
-        ctx.lineTo(canvas.width, canvas.height - 60);
+        ctx.moveTo(0, canvas.height - LINE_OFFSET);
+        ctx.lineTo(canvas.width, canvas.height - LINE_OFFSET);
         ctx.stroke();
     }
 }
