@@ -35,7 +35,10 @@ const btnResetKeys = document.getElementById('btn-reset-keys');
 // Game constants
 let COLS = 4;
 let COL_WIDTH = canvas.width / COLS;
-const TILE_HEIGHT = 150;
+const TILE_PITCH = 150;
+let TILE_HEIGHT = parseInt(localStorage.getItem('pianoGameTileHeight')) || 150;
+if (TILE_HEIGHT < 75) TILE_HEIGHT = 75;
+if (TILE_HEIGHT > 150) TILE_HEIGHT = 150;
 
 const defaultKeys = {
     normal: ['d', 'f', 'j', 'k'],
@@ -262,6 +265,19 @@ function openKeyConfig() {
     const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
     document.getElementById(`config-section-${modeVal}`).classList.remove('hidden');
 
+    const slider = document.getElementById('tile-length-slider');
+    const preview = document.getElementById('tile-preview');
+    const lengthVal = document.getElementById('tile-length-val');
+    
+    slider.value = TILE_HEIGHT;
+    lengthVal.innerText = TILE_HEIGHT;
+    preview.style.height = TILE_HEIGHT + 'px';
+    
+    slider.oninput = (e) => {
+        lengthVal.innerText = e.target.value;
+        preview.style.height = e.target.value + 'px';
+    };
+
     startScreen.classList.add('hidden');
     keyConfigScreen.classList.remove('hidden');
 }
@@ -276,6 +292,11 @@ btnSaveKeys.addEventListener('click', () => {
         const colorInputs = document.querySelectorAll(`#config-${mode} .color-input`);
         userColors[mode] = Array.from(colorInputs).map(inp => inp.value);
     });
+    
+    const slider = document.getElementById('tile-length-slider');
+    TILE_HEIGHT = parseInt(slider.value);
+    localStorage.setItem('pianoGameTileHeight', TILE_HEIGHT);
+    
     localStorage.setItem('pianoGameKeys', JSON.stringify(userKeys));
     localStorage.setItem('pianoGameColors', JSON.stringify(userColors));
     updateModeLabels();
@@ -406,7 +427,7 @@ function startGame() {
     
     // Initial tiles
     for (let i = 0; i < 6; i++) {
-        spawnTile(-i * TILE_HEIGHT);
+        spawnTile(-i * TILE_PITCH);
     }
     
     animationId = requestAnimationFrame(gameLoop);
@@ -460,8 +481,8 @@ function update() {
     
     // Spawn new tiles
     const lastTile = tiles[tiles.length - 1];
-    if (lastTile && lastTile.y > -TILE_HEIGHT) {
-        spawnTile(lastTile.y - TILE_HEIGHT);
+    if (lastTile && lastTile.y > -TILE_PITCH) {
+        spawnTile(lastTile.y - TILE_PITCH);
     }
     
     if (isMultiplayer) {
