@@ -235,7 +235,7 @@ function createKeyInputs(mode, count) {
         input.type = 'text';
         input.className = 'key-input';
         let initialKey = userKeys[mode][i];
-        input.value = initialKey === ' ' ? '␣' : (initialKey === 'shift' ? 'SHIFT' : initialKey.toUpperCase());
+        input.value = initialKey === ' ' ? '␣' : (initialKey === 'shift' ? '⇧' : initialKey.toUpperCase());
         input.dataset.keyValue = initialKey;
         
         input.addEventListener('keydown', (e) => {
@@ -244,7 +244,7 @@ function createKeyInputs(mode, count) {
             let key = e.key.toLowerCase();
             if (key === ';') key = '+';
             if (key.length === 1 || key === 'shift') {
-                input.value = key === ' ' ? '␣' : (key === 'shift' ? 'SHIFT' : key.toUpperCase());
+                input.value = key === ' ' ? '␣' : (key === 'shift' ? '⇧' : key.toUpperCase());
                 input.dataset.keyValue = key;
             }
         });

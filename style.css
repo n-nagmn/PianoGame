@@ -170,22 +170,24 @@ button:hover {
 .key-config-row {
     display: flex;
     gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .key-input {
-    width: 50px !important;
+    width: 40px !important;
     height: 35px;
     padding: 0 !important;
     margin-bottom: 0 !important;
     text-align: center;
-    font-size: 16px !important;
+    font-size: 14px !important;
     text-transform: uppercase;
     background-color: white;
     color: black;
 }
 
 .color-input {
-    width: 50px;
+    width: 40px;
     height: 25px;
     padding: 0;
     border: none;
