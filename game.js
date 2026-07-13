@@ -41,6 +41,8 @@ if (isNaN(TILE_HEIGHT)) TILE_HEIGHT = 150;
 if (TILE_HEIGHT < 0) TILE_HEIGHT = 0;
 if (TILE_HEIGHT > 150) TILE_HEIGHT = 150;
 
+let SHOW_JUDGEMENT_LINE = localStorage.getItem('pianoGameShowLine') === 'true';
+
 const defaultKeys = {
     normal: ['d', 'f', 'j', 'k'],
     hyper: ['s', 'd', 'f', 'j', 'k', 'l'],
@@ -279,6 +281,8 @@ function openKeyConfig() {
         preview.style.height = e.target.value + 'px';
     };
 
+    document.getElementById('show-judgement-line').checked = SHOW_JUDGEMENT_LINE;
+
     startScreen.classList.add('hidden');
     keyConfigScreen.classList.remove('hidden');
 }
@@ -297,6 +301,9 @@ btnSaveKeys.addEventListener('click', () => {
     const slider = document.getElementById('tile-length-slider');
     TILE_HEIGHT = parseInt(slider.value);
     localStorage.setItem('pianoGameTileHeight', TILE_HEIGHT);
+    
+    SHOW_JUDGEMENT_LINE = document.getElementById('show-judgement-line').checked;
+    localStorage.setItem('pianoGameShowLine', SHOW_JUDGEMENT_LINE);
     
     localStorage.setItem('pianoGameKeys', JSON.stringify(userKeys));
     localStorage.setItem('pianoGameColors', JSON.stringify(userColors));
@@ -534,6 +541,15 @@ function drawBoard() {
     for (let i = 0; i < COLS; i++) {
         let keyText = KEYS[i] === ' ' ? '␣' : (KEYS[i] === 'shift' ? 'SHIFT' : KEYS[i].toUpperCase());
         ctx.fillText(keyText, i * COL_WIDTH + COL_WIDTH / 2, canvas.height - 20);
+    }
+
+    if (SHOW_JUDGEMENT_LINE) {
+        ctx.strokeStyle = '#ff4081';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height - 60);
+        ctx.lineTo(canvas.width, canvas.height - 60);
+        ctx.stroke();
     }
 }
 
