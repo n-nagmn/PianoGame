@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Piano Tiles Clone</title>
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
     <div id="wrapper">
@@ -14,14 +14,32 @@
             <div id="start-screen" class="screen">
                 <h1>Piano Tiles</h1>
                 <input type="text" id="playerName" placeholder="名前を入力">
-                <div id="mode-selection" style="margin-bottom: 20px; color: white;">
-                    <label><input type="radio" name="gameMode" value="normal" checked> Normal(4鍵: DFJK)</label><br>
-                    <label><input type="radio" name="gameMode" value="hyper"> Hyper(6鍵: SDFJKL)</label><br>
-                    <label><input type="radio" name="gameMode" value="another"> Another(8鍵: ASDFJKL+)</label>
+                <div id="mode-selection" style="margin-bottom: 20px; color: white; text-align: left;">
+                    <label><input type="radio" name="gameMode" value="normal" checked> <span id="label-normal">Normal (4鍵)</span></label><br>
+                    <label><input type="radio" name="gameMode" value="hyper"> <span id="label-hyper">Hyper (6鍵)</span></label><br>
+                    <label><input type="radio" name="gameMode" value="another"> <span id="label-another">Another (8鍵)</span></label>
                 </div>
                 <button id="btn-single">シングルプレイ</button>
                 <button id="btn-multi">オンライン対戦</button>
                 <button id="btn-ranking">ランキング</button>
+                <button id="btn-key-config" style="background-color: #607d8b;">キーコンフィグ</button>
+            </div>
+            
+            <div id="key-config-screen" class="screen hidden">
+                <h2>キーコンフィグ</h2>
+                <div style="text-align: left; margin-bottom: 20px;">
+                    <h3 style="color: white; margin-bottom: 5px; font-size: 16px;">Normal (4鍵)</h3>
+                    <div id="config-normal" class="key-config-row"></div>
+                    <h3 style="color: white; margin-bottom: 5px; font-size: 16px; margin-top: 10px;">Hyper (6鍵)</h3>
+                    <div id="config-hyper" class="key-config-row"></div>
+                    <h3 style="color: white; margin-bottom: 5px; font-size: 16px; margin-top: 10px;">Another (8鍵)</h3>
+                    <div id="config-another" class="key-config-row"></div>
+                </div>
+                <div style="display: flex; gap: 10px; width: 80%;">
+                    <button id="btn-save-keys" style="width: auto; flex: 1; margin-bottom: 0;">保存</button>
+                    <button id="btn-cancel-keys" style="width: auto; flex: 1; margin-bottom: 0; background-color: #6c757d;">戻る</button>
+                </div>
+                <button id="btn-reset-keys" style="width: 80%; background-color: #dc3545; margin-top: 10px;">初期化</button>
             </div>
             
             <div id="waiting-screen" class="screen hidden">
@@ -59,6 +77,6 @@
     </div>
     
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="game.js?v=8"></script>
+    <script src="game.js?v=9"></script>
 </body>
 </html>

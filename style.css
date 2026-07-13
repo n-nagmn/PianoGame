@@ -166,3 +166,20 @@ button:hover {
 #opponent-container { display: flex; flex-direction: column; align-items: center; background-color: #444; padding: 10px; border-radius: 10px; }
 #opponent-container h3 { margin: 0 0 10px 0; color: white; }
 #opponentCanvas { background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.5); border-radius: 5px; }
+
+.key-config-row {
+    display: flex;
+    gap: 5px;
+}
+
+.key-input {
+    width: 35px !important;
+    height: 35px;
+    padding: 0 !important;
+    margin-bottom: 0 !important;
+    text-align: center;
+    font-size: 16px !important;
+    text-transform: uppercase;
+    background-color: white;
+    color: black;
+}

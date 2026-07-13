@@ -3,7 +3,7 @@ const ctx = canvas.getContext('2d');
 const opponentCanvas = document.getElementById('opponentCanvas');
 const oppCtx = opponentCanvas.getContext('2d');
 
-const port = (window.location.port === '' || window.location.port === '80') ? ':3001' : `:${window.location.port}`;
+const port = (window.location.port === '' || window.location.port === '80') ? ':3040' : `:${window.location.port}`;
 const socketUrl = window.location.protocol + '//' + window.location.hostname + port;
 const socket = io(socketUrl);
 
@@ -26,13 +26,43 @@ const btnRanking = document.getElementById('btn-ranking');
 const btnCancel = document.getElementById('btn-cancel');
 const btnRestart = document.getElementById('btn-restart');
 const btnCloseRanking = document.getElementById('btn-close-ranking');
+const btnKeyConfig = document.getElementById('btn-key-config');
+const keyConfigScreen = document.getElementById('key-config-screen');
+const btnSaveKeys = document.getElementById('btn-save-keys');
+const btnCancelKeys = document.getElementById('btn-cancel-keys');
+const btnResetKeys = document.getElementById('btn-reset-keys');
 
 // Game constants
 let COLS = 4;
 let COL_WIDTH = canvas.width / COLS;
 const TILE_HEIGHT = 150;
-let KEYS = ['d', 'f', 'j', 'k'];
+
+const defaultKeys = {
+    normal: ['d', 'f', 'j', 'k'],
+    hyper: ['s', 'd', 'f', 'j', 'k', 'l'],
+    another: ['a', 's', 'd', 'f', 'j', 'k', 'l', '+']
+};
+
+let storedKeys = null;
+try {
+    storedKeys = JSON.parse(localStorage.getItem('pianoGameKeys'));
+} catch (e) {}
+
+let userKeys = storedKeys ? Object.assign({}, defaultKeys, storedKeys) : JSON.parse(JSON.stringify(defaultKeys));
+
+// Ensure array lengths are correct if data was corrupted
+if (!Array.isArray(userKeys.normal) || userKeys.normal.length !== 4) userKeys.normal = [...defaultKeys.normal];
+if (!Array.isArray(userKeys.hyper) || userKeys.hyper.length !== 6) userKeys.hyper = [...defaultKeys.hyper];
+if (!Array.isArray(userKeys.another) || userKeys.another.length !== 8) userKeys.another = [...defaultKeys.another];
+
+let KEYS = [...userKeys.normal];
 let currentMode = 'normal';
+
+function updateModeLabels() {
+    document.getElementById('label-normal').innerText = `Normal (4鍵: ${userKeys.normal.map(k => k === ' ' ? '␣' : k).join('').toUpperCase()})`;
+    document.getElementById('label-hyper').innerText = `Hyper (6鍵: ${userKeys.hyper.map(k => k === ' ' ? '␣' : k).join('').toUpperCase()})`;
+    document.getElementById('label-another').innerText = `Another (8鍵: ${userKeys.another.map(k => k === ' ' ? '␣' : k).join('').toUpperCase()})`;
+}
 
 function setMode(mode) {
     currentMode = mode;
@@ -40,15 +70,15 @@ function setMode(mode) {
     
     if (mode === 'normal') {
         COLS = 4;
-        KEYS = ['d', 'f', 'j', 'k'];
+        KEYS = [...userKeys.normal];
         newWidth = 400;
     } else if (mode === 'hyper') {
         COLS = 6;
-        KEYS = ['s', 'd', 'f', 'j', 'k', 'l'];
+        KEYS = [...userKeys.hyper];
         newWidth = 500;
     } else if (mode === 'another') {
         COLS = 8;
-        KEYS = ['a', 's', 'd', 'f', 'j', 'k', 'l', '+'];
+        KEYS = [...userKeys.another];
         newWidth = 600;
     }
     
@@ -163,10 +193,77 @@ btnCloseRanking.addEventListener('click', () => {
     rankingScreen.classList.add('hidden');
 });
 
+// Key Config Events
+function createKeyInputs(mode, count) {
+    const container = document.getElementById(`config-${mode}`);
+    container.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'key-input';
+        let initialKey = userKeys[mode][i];
+        input.value = initialKey === ' ' ? '␣' : initialKey.toUpperCase();
+        input.dataset.keyValue = initialKey;
+        
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') return;
+            e.preventDefault();
+            let key = e.key.toLowerCase();
+            if (key === ';') key = '+';
+            if (key.length === 1) {
+                input.value = key === ' ' ? '␣' : key.toUpperCase();
+                input.dataset.keyValue = key;
+            }
+        });
+        
+        container.appendChild(input);
+    }
+}
+
+function openKeyConfig() {
+    createKeyInputs('normal', 4);
+    createKeyInputs('hyper', 6);
+    createKeyInputs('another', 8);
+    startScreen.classList.add('hidden');
+    keyConfigScreen.classList.remove('hidden');
+}
+
+btnKeyConfig.addEventListener('click', openKeyConfig);
+
+btnSaveKeys.addEventListener('click', () => {
+    ['normal', 'hyper', 'another'].forEach(mode => {
+        const inputs = document.querySelectorAll(`#config-${mode} .key-input`);
+        userKeys[mode] = Array.from(inputs).map(inp => inp.dataset.keyValue);
+    });
+    localStorage.setItem('pianoGameKeys', JSON.stringify(userKeys));
+    updateModeLabels();
+    setMode(currentMode);
+    keyConfigScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+});
+
+btnCancelKeys.addEventListener('click', () => {
+    keyConfigScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+});
+
+btnResetKeys.addEventListener('click', () => {
+    userKeys = JSON.parse(JSON.stringify(defaultKeys));
+    openKeyConfig();
+});
+
+updateModeLabels();
+
 document.addEventListener('keydown', (e) => {
     if (!isPlaying) {
-        if (e.code === 'Space' && !gameOverScreen.classList.contains('hidden')) {
-            btnRestart.click();
+        if (e.code === 'Space') {
+            if (!gameOverScreen.classList.contains('hidden')) {
+                btnRestart.click();
+            } else if (!startScreen.classList.contains('hidden')) {
+                if (document.activeElement !== playerNameInput) {
+                    btnSingle.click();
+                }
+            }
         }
         return;
     }
@@ -370,7 +467,8 @@ function drawBoard() {
     ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'center';
     for (let i = 0; i < COLS; i++) {
-        ctx.fillText(KEYS[i].toUpperCase(), i * COL_WIDTH + COL_WIDTH / 2, canvas.height - 20);
+        let keyText = KEYS[i] === ' ' ? '␣' : KEYS[i].toUpperCase();
+        ctx.fillText(keyText, i * COL_WIDTH + COL_WIDTH / 2, canvas.height - 20);
     }
 }
 
