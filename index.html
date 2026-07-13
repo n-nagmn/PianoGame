@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Piano Tiles Clone</title>
-    <link rel="stylesheet" href="style.css?v=5">
+    <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
     <div id="wrapper">
@@ -28,12 +28,18 @@
             <div id="key-config-screen" class="screen hidden">
                 <h2>キー・カラー設定</h2>
                 <div style="text-align: left; margin-bottom: 20px;">
-                    <h3 style="color: white; margin-bottom: 5px; font-size: 16px;">Normal (4鍵)</h3>
-                    <div id="config-normal" class="key-config-row"></div>
-                    <h3 style="color: white; margin-bottom: 5px; font-size: 16px; margin-top: 10px;">Hyper (6鍵)</h3>
-                    <div id="config-hyper" class="key-config-row"></div>
-                    <h3 style="color: white; margin-bottom: 5px; font-size: 16px; margin-top: 10px;">Another (8鍵)</h3>
-                    <div id="config-another" class="key-config-row"></div>
+                    <div id="config-section-normal">
+                        <h3 style="color: white; margin-bottom: 5px; font-size: 16px;">Normal (4鍵)</h3>
+                        <div id="config-normal" class="key-config-row"></div>
+                    </div>
+                    <div id="config-section-hyper" class="hidden">
+                        <h3 style="color: white; margin-bottom: 5px; font-size: 16px;">Hyper (6鍵)</h3>
+                        <div id="config-hyper" class="key-config-row"></div>
+                    </div>
+                    <div id="config-section-another" class="hidden">
+                        <h3 style="color: white; margin-bottom: 5px; font-size: 16px;">Another (8鍵)</h3>
+                        <div id="config-another" class="key-config-row"></div>
+                    </div>
                 </div>
                 <div style="display: flex; gap: 10px; width: 80%;">
                     <button id="btn-save-keys" style="width: auto; flex: 1; margin-bottom: 0;">保存</button>
@@ -77,6 +83,6 @@
     </div>
     
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="game.js?v=11"></script>
+    <script src="game.js?v=12"></script>
 </body>
 </html>

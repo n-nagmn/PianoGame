@@ -254,6 +254,14 @@ function openKeyConfig() {
     createKeyInputs('normal', 4);
     createKeyInputs('hyper', 6);
     createKeyInputs('another', 8);
+    
+    document.getElementById('config-section-normal').classList.add('hidden');
+    document.getElementById('config-section-hyper').classList.add('hidden');
+    document.getElementById('config-section-another').classList.add('hidden');
+    
+    const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
+    document.getElementById(`config-section-${modeVal}`).classList.remove('hidden');
+
     startScreen.classList.add('hidden');
     keyConfigScreen.classList.remove('hidden');
 }
