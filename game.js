@@ -335,7 +335,6 @@ function openKeyConfig() {
             userKeys[mode] = Array.from(keyInputs).map(inp => inp.dataset.keyValue);
         });
         
-        const configModeVal = document.querySelector('input[name="configMode"]:checked').value;
         setMode(configModeVal);
         
         tiles = [];
