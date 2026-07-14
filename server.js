@@ -15,7 +15,8 @@ db.initDB();
 let waitingPlayers = {
     normal: null,
     hyper: null,
-    another: null
+    another: null,
+    leggendaria: null
 };
 
 io.on('connection', (socket) => {
@@ -76,7 +77,7 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = 3001;
+const PORT = 3040;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
