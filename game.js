@@ -363,10 +363,12 @@ function openKeyConfig() {
             setMode(configModeVal);
             
             tiles = [];
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < COLS; i++) {
+                // Show exactly one note per column. Wrap vertically so they all stay within the visible screen.
+                let visualRow = i % 5;
                 tiles.push({
-                    col: i % COLS,
-                    y: canvas.height - 150 - (i * TILE_PITCH),
+                    col: i,
+                    y: canvas.height - 150 - (visualRow * TILE_PITCH),
                     clicked: false,
                     isError: false
                 });
