@@ -11,7 +11,6 @@ const socket = io(socketUrl);
 const startScreen = document.getElementById('start-screen');
 const waitingScreen = document.getElementById('waiting-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
-const rankingScreen = document.getElementById('ranking-screen');
 const scoreDisplay = document.getElementById('score-display');
 const opponentScoreDisplay = document.getElementById('opponent-score-display');
 const opponentContainer = document.getElementById('opponent-container');
@@ -22,10 +21,8 @@ const rankingList = document.getElementById('ranking-list');
 
 const btnSingle = document.getElementById('btn-single');
 const btnMulti = document.getElementById('btn-multi');
-const btnRanking = document.getElementById('btn-ranking');
 const btnCancel = document.getElementById('btn-cancel');
 const btnRestart = document.getElementById('btn-restart');
-const btnCloseRanking = document.getElementById('btn-close-ranking');
 const btnKeyConfig = document.getElementById('btn-key-config');
 const keyConfigScreen = document.getElementById('key-config-screen');
 const btnSaveKeys = document.getElementById('btn-save-keys');
@@ -157,6 +154,7 @@ let currentRoom = null;
 
 // Initial Draw
 drawBoard();
+socket.emit('getRanking', currentRankingMode);
 
 // Load name from local storage
 const savedName = localStorage.getItem('playerName');
@@ -184,6 +182,7 @@ btnSingle.addEventListener('click', () => {
     
     isMultiplayer = false;
     startScreen.classList.add('hidden');
+    document.getElementById('ranking-container-outer').classList.add('hidden');
     startGame();
 });
 
@@ -196,6 +195,7 @@ btnMulti.addEventListener('click', () => {
     
     isMultiplayer = true;
     startScreen.classList.add('hidden');
+    document.getElementById('ranking-container-outer').classList.add('hidden');
     waitingScreen.classList.remove('hidden');
     socket.emit('findMatch', { name: myName, mode: currentMode });
 });
@@ -204,11 +204,15 @@ btnCancel.addEventListener('click', () => {
     socket.emit('cancelMatch');
     waitingScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
+    document.getElementById('ranking-container-outer').classList.remove('hidden');
+    socket.emit('getRanking', currentRankingMode);
 });
 
 btnRestart.addEventListener('click', () => {
     gameOverScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
+    document.getElementById('ranking-container-outer').classList.remove('hidden');
+    socket.emit('getRanking', currentRankingMode);
 });
 
 let currentRankingMode = 'normal';
@@ -222,11 +226,7 @@ function updateRankingTitle() {
     if (currentRankingMode === 'dp') title.innerText = 'ランキング (DP)';
 }
 
-btnRanking.addEventListener('click', () => {
-    currentRankingMode = document.querySelector('input[name="gameMode"]:checked').value;
-    updateRankingTitle();
-    socket.emit('getRanking', currentRankingMode);
-});
+
 
 document.getElementById('btn-rank-normal').addEventListener('click', () => {
     currentRankingMode = 'normal';
@@ -258,9 +258,7 @@ document.getElementById('btn-rank-dp').addEventListener('click', () => {
     socket.emit('getRanking', currentRankingMode);
 });
 
-btnCloseRanking.addEventListener('click', () => {
-    rankingScreen.classList.add('hidden');
-});
+
 
 // Key Config Events
 function createKeyInputs(mode, count) {
@@ -411,6 +409,7 @@ function openKeyConfig() {
     updatePreview();
 
     startScreen.classList.add('hidden');
+    document.getElementById('ranking-container-outer').classList.add('hidden');
     keyConfigScreen.classList.remove('hidden');
 }
 
@@ -446,9 +445,9 @@ btnSaveKeys.addEventListener('click', () => {
     
     tiles = [];
     draw();
-    
     keyConfigScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
+    document.getElementById('ranking-container-outer').classList.remove('hidden');
 });
 
 btnCancelKeys.addEventListener('click', () => {
@@ -475,9 +474,9 @@ btnCancelKeys.addEventListener('click', () => {
     setMode(currentMode);
     tiles = [];
     draw();
-
     keyConfigScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
+    document.getElementById('ranking-container-outer').classList.remove('hidden');
 });
 
 btnResetKeys.addEventListener('click', () => {
