@@ -22,8 +22,10 @@ const rankingList = document.getElementById('ranking-list');
 
 const btnSingle = document.getElementById('btn-single');
 const btnMulti = document.getElementById('btn-multi');
+const btnRanking = document.getElementById('btn-ranking');
 const btnCancel = document.getElementById('btn-cancel');
 const btnRestart = document.getElementById('btn-restart');
+const btnCloseRanking = document.getElementById('btn-close-ranking');
 const btnKeyConfig = document.getElementById('btn-key-config');
 const keyConfigScreen = document.getElementById('key-config-screen');
 const btnSaveKeys = document.getElementById('btn-save-keys');
@@ -155,8 +157,6 @@ let currentRoom = null;
 
 // Initial Draw
 drawBoard();
-socket.emit('getRanking', currentRankingMode);
-rankingScreen.classList.remove('hidden');
 
 // Load name from local storage
 const savedName = localStorage.getItem('playerName');
@@ -184,7 +184,6 @@ btnSingle.addEventListener('click', () => {
     
     isMultiplayer = false;
     startScreen.classList.add('hidden');
-    rankingScreen.classList.add('hidden');
     startGame();
 });
 
@@ -197,7 +196,6 @@ btnMulti.addEventListener('click', () => {
     
     isMultiplayer = true;
     startScreen.classList.add('hidden');
-    rankingScreen.classList.add('hidden');
     waitingScreen.classList.remove('hidden');
     socket.emit('findMatch', { name: myName, mode: currentMode });
 });
@@ -206,15 +204,11 @@ btnCancel.addEventListener('click', () => {
     socket.emit('cancelMatch');
     waitingScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
-    rankingScreen.classList.remove('hidden');
-    socket.emit('getRanking', currentRankingMode);
 });
 
 btnRestart.addEventListener('click', () => {
     gameOverScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
-    rankingScreen.classList.remove('hidden');
-    socket.emit('getRanking', currentRankingMode);
 });
 
 let currentRankingMode = 'normal';
@@ -228,7 +222,11 @@ function updateRankingTitle() {
     if (currentRankingMode === 'dp') title.innerText = 'ランキング (DP)';
 }
 
-
+btnRanking.addEventListener('click', () => {
+    currentRankingMode = document.querySelector('input[name="gameMode"]:checked').value;
+    updateRankingTitle();
+    socket.emit('getRanking', currentRankingMode);
+});
 
 document.getElementById('btn-rank-normal').addEventListener('click', () => {
     currentRankingMode = 'normal';
@@ -260,7 +258,9 @@ document.getElementById('btn-rank-dp').addEventListener('click', () => {
     socket.emit('getRanking', currentRankingMode);
 });
 
-
+btnCloseRanking.addEventListener('click', () => {
+    rankingScreen.classList.add('hidden');
+});
 
 // Key Config Events
 function createKeyInputs(mode, count) {
@@ -411,7 +411,6 @@ function openKeyConfig() {
     updatePreview();
 
     startScreen.classList.add('hidden');
-    rankingScreen.classList.add('hidden');
     keyConfigScreen.classList.remove('hidden');
 }
 
@@ -450,8 +449,6 @@ btnSaveKeys.addEventListener('click', () => {
     
     keyConfigScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
-    rankingScreen.classList.remove('hidden');
-    socket.emit('getRanking', currentRankingMode);
 });
 
 btnCancelKeys.addEventListener('click', () => {
@@ -481,8 +478,6 @@ btnCancelKeys.addEventListener('click', () => {
 
     keyConfigScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
-    rankingScreen.classList.remove('hidden');
-    socket.emit('getRanking', currentRankingMode);
 });
 
 btnResetKeys.addEventListener('click', () => {
@@ -576,6 +571,7 @@ socket.on('rankingData', (data) => {
         li.innerHTML = `<span>${index + 1}. ${entry.name}</span><span>${entry.score}</span>`;
         rankingList.appendChild(li);
     });
+    rankingScreen.classList.remove('hidden');
 });
 
 // Game Functions
