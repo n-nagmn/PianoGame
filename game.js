@@ -570,7 +570,6 @@ socket.on('rankingData', (data) => {
         li.innerHTML = `<span>${index + 1}. ${entry.name}</span><span>${entry.score}</span>`;
         rankingList.appendChild(li);
     });
-    rankingScreen.classList.remove('hidden');
 });
 
 // Game Functions
