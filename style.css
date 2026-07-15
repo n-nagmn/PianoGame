@@ -133,7 +133,7 @@ button:hover {
 
 #ranking-list {
     list-style-type: none;
-    width: 80%;
+    width: 96%;
     max-height: 450px;
     overflow-y: auto;
     margin-bottom: 20px;
