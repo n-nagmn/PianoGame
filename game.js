@@ -51,14 +51,16 @@ const defaultKeys = {
     normal: ['d', 'f', 'j', 'k'],
     hyper: ['s', 'd', 'f', 'j', 'k', 'l'],
     another: ['a', 's', 'd', 'f', 'j', 'k', 'l', '+'],
-    leggendaria: ['a', 's', 'd', 'f', ' ', 'j', 'k', 'l', '+']
+    leggendaria: ['a', 's', 'd', 'f', ' ', 'j', 'k', 'l', '+'],
+    dp: ['q', 'w', 'e', 'r', 'a', 's', 'd', 'f', 'y', 'u', 'i', 'o', 'h', 'j', 'k', 'l']
 };
 
 const defaultColors = {
     normal: ['#000000', '#000000', '#000000', '#000000'],
     hyper: ['#000000', '#000000', '#000000', '#000000', '#000000', '#000000'],
     another: ['#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000'],
-    leggendaria: ['#000000', '#000000', '#000000', '#000000', '#ff0000', '#000000', '#000000', '#000000', '#000000']
+    leggendaria: ['#000000', '#000000', '#000000', '#000000', '#ff0000', '#000000', '#000000', '#000000', '#000000'],
+    dp: ['#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000', '#000000']
 };
 
 let storedKeys = null;
@@ -74,7 +76,8 @@ const defaultWidths = {
     normal: 400,
     hyper: 500,
     another: 600,
-    leggendaria: 675
+    leggendaria: 675,
+    dp: 1200
 };
 
 let userKeys = storedKeys ? Object.assign({}, defaultKeys, storedKeys) : JSON.parse(JSON.stringify(defaultKeys));
@@ -86,11 +89,13 @@ if (!Array.isArray(userKeys.normal) || userKeys.normal.length !== 4) userKeys.no
 if (!Array.isArray(userKeys.hyper) || userKeys.hyper.length !== 6) userKeys.hyper = [...defaultKeys.hyper];
 if (!Array.isArray(userKeys.another) || userKeys.another.length !== 8) userKeys.another = [...defaultKeys.another];
 if (!Array.isArray(userKeys.leggendaria) || userKeys.leggendaria.length !== 9) userKeys.leggendaria = [...defaultKeys.leggendaria];
+if (!Array.isArray(userKeys.dp) || userKeys.dp.length !== 16) userKeys.dp = [...defaultKeys.dp];
 
 if (!Array.isArray(userColors.normal) || userColors.normal.length !== 4) userColors.normal = [...defaultColors.normal];
 if (!Array.isArray(userColors.hyper) || userColors.hyper.length !== 6) userColors.hyper = [...defaultColors.hyper];
 if (!Array.isArray(userColors.another) || userColors.another.length !== 8) userColors.another = [...defaultColors.another];
 if (!Array.isArray(userColors.leggendaria) || userColors.leggendaria.length !== 9) userColors.leggendaria = [...defaultColors.leggendaria];
+if (!Array.isArray(userColors.dp) || userColors.dp.length !== 16) userColors.dp = [...defaultColors.dp];
 
 let KEYS = [...userKeys.normal];
 let COLORS = [...userColors.normal];
@@ -101,6 +106,7 @@ function updateModeLabels() {
     document.getElementById('label-hyper').innerText = `Hyper (6鍵: ${userKeys.hyper.map(k => k === ' ' ? '␣' : (k === 'shift' ? '⇧' : k)).join('').toUpperCase()})`;
     document.getElementById('label-another').innerText = `Another (8鍵: ${userKeys.another.map(k => k === ' ' ? '␣' : (k === 'shift' ? '⇧' : k)).join('').toUpperCase()})`;
     document.getElementById('label-leggendaria').innerText = `Leggendaria (9鍵: ${userKeys.leggendaria.map(k => k === ' ' ? '␣' : (k === 'shift' ? '⇧' : k)).join('').toUpperCase()})`;
+    document.getElementById('label-dp').innerText = `DP (16鍵: ${userKeys.dp.map(k => k === ' ' ? '␣' : (k === 'shift' ? '⇧' : k)).join('').toUpperCase()})`;
 }
 
 function setMode(mode) {
@@ -123,6 +129,10 @@ function setMode(mode) {
         COLS = 9;
         KEYS = [...userKeys.leggendaria];
         COLORS = [...userColors.leggendaria];
+    } else if (mode === 'dp') {
+        COLS = 16;
+        KEYS = [...userKeys.dp];
+        COLORS = [...userColors.dp];
     }
     
     if (canvas.width !== userWidths[mode]) {
@@ -209,6 +219,7 @@ function updateRankingTitle() {
     if (currentRankingMode === 'hyper') title.innerText = 'ランキング (Hyper)';
     if (currentRankingMode === 'another') title.innerText = 'ランキング (Another)';
     if (currentRankingMode === 'leggendaria') title.innerText = 'ランキング (Leggendaria)';
+    if (currentRankingMode === 'dp') title.innerText = 'ランキング (DP)';
 }
 
 btnRanking.addEventListener('click', () => {
@@ -237,6 +248,12 @@ document.getElementById('btn-rank-another').addEventListener('click', () => {
 
 document.getElementById('btn-rank-leggendaria').addEventListener('click', () => {
     currentRankingMode = 'leggendaria';
+    updateRankingTitle();
+    socket.emit('getRanking', currentRankingMode);
+});
+
+document.getElementById('btn-rank-dp').addEventListener('click', () => {
+    currentRankingMode = 'dp';
     updateRankingTitle();
     socket.emit('getRanking', currentRankingMode);
 });
@@ -290,11 +307,13 @@ function openKeyConfig() {
     createKeyInputs('hyper', 6);
     createKeyInputs('another', 8);
     createKeyInputs('leggendaria', 9);
+    createKeyInputs('dp', 16);
     
     document.getElementById('config-section-normal').classList.add('hidden');
     document.getElementById('config-section-hyper').classList.add('hidden');
     document.getElementById('config-section-another').classList.add('hidden');
     document.getElementById('config-section-leggendaria').classList.add('hidden');
+    document.getElementById('config-section-dp').classList.add('hidden');
     
     const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
     document.getElementById(`config-section-${modeVal}`).classList.remove('hidden');
@@ -318,6 +337,7 @@ function openKeyConfig() {
             document.getElementById('config-section-hyper').classList.add('hidden');
             document.getElementById('config-section-another').classList.add('hidden');
             document.getElementById('config-section-leggendaria').classList.add('hidden');
+            document.getElementById('config-section-dp').classList.add('hidden');
             document.getElementById(`config-section-${e.target.value}`).classList.remove('hidden');
             
             document.querySelector(`input[name="gameMode"][value="${e.target.value}"]`).checked = true;
@@ -352,7 +372,7 @@ function openKeyConfig() {
             userWidths[configModeVal] = parseInt(widthSlider.value);
             widthVal.innerText = userWidths[configModeVal];
             
-            ['normal', 'hyper', 'another', 'leggendaria'].forEach(mode => {
+            ['normal', 'hyper', 'another', 'leggendaria', 'dp'].forEach(mode => {
                 const colorInputs = document.querySelectorAll(`#config-${mode} .color-input`);
                 userColors[mode] = Array.from(colorInputs).map(inp => inp.value);
                 
@@ -397,7 +417,7 @@ function openKeyConfig() {
 btnKeyConfig.addEventListener('click', openKeyConfig);
 
 btnSaveKeys.addEventListener('click', () => {
-    ['normal', 'hyper', 'another', 'leggendaria'].forEach(mode => {
+    ['normal', 'hyper', 'another', 'leggendaria', 'dp'].forEach(mode => {
         const keyInputs = document.querySelectorAll(`#config-${mode} .key-input`);
         userKeys[mode] = Array.from(keyInputs).map(inp => inp.dataset.keyValue);
         

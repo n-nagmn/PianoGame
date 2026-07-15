@@ -18,7 +18,8 @@
                     <label><input type="radio" name="gameMode" value="normal" checked> <span id="label-normal">Normal (4鍵)</span></label><br>
                     <label><input type="radio" name="gameMode" value="hyper"> <span id="label-hyper">Hyper (6鍵)</span></label><br>
                     <label><input type="radio" name="gameMode" value="another"> <span id="label-another">Another (8鍵)</span></label><br>
-                    <label><input type="radio" name="gameMode" value="leggendaria"> <span id="label-leggendaria">Leggendaria (9鍵)</span></label>
+                    <label><input type="radio" name="gameMode" value="leggendaria"> <span id="label-leggendaria">Leggendaria (9鍵)</span></label><br>
+                    <label><input type="radio" name="gameMode" value="dp"> <span id="label-dp">DP (16鍵)</span></label>
                 </div>
                 <button id="btn-single">シングルプレイ</button>
                 <button id="btn-multi">オンライン対戦</button>
@@ -45,6 +46,7 @@
                     <button id="btn-rank-hyper" style="width: auto; padding: 8px 12px; font-size: 14px; margin: 0 5px;">Hyper</button>
                     <button id="btn-rank-another" style="width: auto; padding: 8px 12px; font-size: 14px; margin: 0 5px;">Another</button>
                     <button id="btn-rank-leggendaria" style="width: auto; padding: 8px 12px; font-size: 14px; margin: 0 5px;">Leggendaria</button>
+                    <button id="btn-rank-dp" style="width: auto; padding: 8px 12px; font-size: 14px; margin: 0 5px;">DP</button>
                 </div>
                 <ul id="ranking-list"></ul>
                 <button id="btn-close-ranking">閉じる</button>
@@ -62,7 +64,8 @@
                 <label style="margin-right: 10px; cursor: pointer;"><input type="radio" name="configMode" value="normal"> 4鍵</label>
                 <label style="margin-right: 10px; cursor: pointer;"><input type="radio" name="configMode" value="hyper"> 6鍵</label>
                 <label style="margin-right: 10px; cursor: pointer;"><input type="radio" name="configMode" value="another"> 8鍵</label>
-                <label style="cursor: pointer;"><input type="radio" name="configMode" value="leggendaria"> 9鍵</label>
+                <label style="margin-right: 10px; cursor: pointer;"><input type="radio" name="configMode" value="leggendaria"> 9鍵</label>
+                <label style="cursor: pointer;"><input type="radio" name="configMode" value="dp"> 16鍵</label>
             </div>
             
             <div style="text-align: left; margin-bottom: 15px; width: 90%;">
@@ -99,6 +102,10 @@
                 <div id="config-section-leggendaria" class="hidden">
                     <h3 style="color: white; margin-bottom: 5px; font-size: 16px;">Leggendaria (9鍵)</h3>
                     <div id="config-leggendaria" class="key-config-row"></div>
+                </div>
+                <div id="config-section-dp" class="hidden">
+                    <h3 style="color: white; margin-bottom: 5px; font-size: 16px;">DP (16鍵)</h3>
+                    <div id="config-dp" class="key-config-row"></div>
                 </div>
             </div>
             <div style="display: flex; gap: 10px; width: 90%;">

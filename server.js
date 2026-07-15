@@ -16,7 +16,8 @@ let waitingPlayers = {
     normal: null,
     hyper: null,
     another: null,
-    leggendaria: null
+    leggendaria: null,
+    dp: null
 };
 
 io.on('connection', (socket) => {
