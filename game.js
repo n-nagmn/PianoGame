@@ -286,7 +286,6 @@ function updateRankingTitle() {
     if (currentRankingMode === 'another') titleText += ' (Another)';
     if (currentRankingMode === 'leggendaria') titleText += ' (Leggendaria)';
     if (currentRankingMode === 'dp') titleText += ' (DP)';
-    if (rankingChordToggle.checked) titleText += ' [同時押し]';
     title.innerText = titleText;
 }
 
