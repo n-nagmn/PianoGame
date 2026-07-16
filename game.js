@@ -154,6 +154,31 @@ let isPlaying = false;
 let isMultiplayer = false;
 let myName = "Player";
 let currentRoom = null;
+let isPracticeMode = false;
+let practiceFixedSpeed = 5;
+
+const practiceToggle = document.getElementById('practice-mode-toggle');
+const practiceSpeedContainer = document.getElementById('practice-speed-container');
+const practiceSpeedSlider = document.getElementById('practice-speed-slider');
+const practiceSpeedVal = document.getElementById('practice-speed-val');
+const btnQuitPractice = document.getElementById('btn-quit-practice');
+
+practiceToggle.addEventListener('change', (e) => {
+    isPracticeMode = e.target.checked;
+    if (isPracticeMode) {
+        practiceSpeedContainer.classList.remove('hidden');
+    } else {
+        practiceSpeedContainer.classList.add('hidden');
+    }
+});
+
+practiceSpeedSlider.addEventListener('input', (e) => {
+    practiceFixedSpeed = parseInt(e.target.value);
+    practiceSpeedVal.innerText = practiceFixedSpeed;
+    if (isPlaying && isPracticeMode) {
+        speed = practiceFixedSpeed;
+    }
+});
 
 // Initial Draw
 drawBoard();
@@ -182,6 +207,7 @@ btnSingle.addEventListener('click', () => {
     const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
     setMode(modeVal);
     
+    isPracticeMode = practiceToggle.checked;
     isMultiplayer = false;
     startScreen.classList.add('hidden');
     startGame();
@@ -194,6 +220,7 @@ btnMulti.addEventListener('click', () => {
     const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
     setMode(modeVal);
     
+    isPracticeMode = false; // Disable practice mode in multiplayer
     isMultiplayer = true;
     startScreen.classList.add('hidden');
     waitingScreen.classList.remove('hidden');
@@ -209,6 +236,21 @@ btnCancel.addEventListener('click', () => {
 btnRestart.addEventListener('click', () => {
     gameOverScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
+    rankingScreen.classList.remove('hidden');
+    socket.emit('getRanking', currentRankingMode);
+});
+
+btnQuitPractice.addEventListener('click', () => {
+    if (isPlaying && isPracticeMode) {
+        isPlaying = false;
+        cancelAnimationFrame(animationId);
+        btnQuitPractice.classList.add('hidden');
+        scoreDisplay.classList.add('hidden');
+        startScreen.classList.remove('hidden');
+        rankingScreen.classList.remove('hidden');
+        socket.emit('getRanking', currentRankingMode);
+        drawBoard(); // Clear tiles
+    }
 });
 
 let currentRankingMode = 'normal';
@@ -578,9 +620,15 @@ socket.on('rankingData', (data) => {
 function startGame() {
     tiles = [];
     score = 0;
-    speed = 5;
+    speed = isPracticeMode ? practiceFixedSpeed : 5;
     scoreDisplay.innerText = score;
     scoreDisplay.classList.remove('hidden');
+    
+    if (isPracticeMode) {
+        btnQuitPractice.classList.remove('hidden');
+    } else {
+        btnQuitPractice.classList.add('hidden');
+    }
     
     if (isMultiplayer) {
         opponentScoreDisplay.innerText = "Opponent: 0";
@@ -626,7 +674,11 @@ function gameLoop() {
 }
 
 function update() {
-    speed = 5 + Math.floor(score / 15); // Increase speed gradually
+    if (isPracticeMode) {
+        speed = practiceFixedSpeed;
+    } else {
+        speed = 5 + Math.floor(score / 15); // Increase speed gradually
+    }
     
     let lowestUnclicked = null;
     
@@ -634,26 +686,39 @@ function update() {
         let tile = tiles[i];
         tile.y += speed;
         
-        if (!tile.clicked && (lowestUnclicked === null || tile.y > lowestUnclicked.y)) {
+        if (!tile.clicked && !tile.passed && !tile.isWrongKey && (lowestUnclicked === null || tile.y > lowestUnclicked.y)) {
             lowestUnclicked = tile;
         }
     }
     
     // Check if the lowest unclicked tile passed the bottom
     if (lowestUnclicked && lowestUnclicked.y + (TILE_PITCH - TILE_HEIGHT) > canvas.height) {
-        lowestUnclicked.isError = true;
-        gameOver("Missed a tile!");
+        if (isPracticeMode) {
+            lowestUnclicked.passed = true;
+            lowestUnclicked.isError = true;
+        } else {
+            lowestUnclicked.isError = true;
+            gameOver("Missed a tile!");
+            return;
+        }
     }
     
-    // Remove clicked tiles that are off screen
-    if (tiles[0] && tiles[0].y > canvas.height && tiles[0].clicked) {
+    // Remove tiles that are far off screen
+    while (tiles.length > 0 && tiles[0].y > canvas.height + TILE_PITCH) {
         tiles.shift();
     }
     
     // Spawn new tiles
-    const lastTile = tiles[tiles.length - 1];
-    if (lastTile && lastTile.y > -TILE_PITCH) {
-        spawnTile(lastTile.y - TILE_PITCH);
+    let lastValidTile = null;
+    for (let i = tiles.length - 1; i >= 0; i--) {
+        if (!tiles[i].isWrongKey) {
+            lastValidTile = tiles[i];
+            break;
+        }
+    }
+    
+    if (lastValidTile && lastValidTile.y > -TILE_PITCH) {
+        spawnTile(lastValidTile.y - TILE_PITCH);
     }
     
     if (isMultiplayer) {
@@ -722,7 +787,7 @@ function handleInput(colIndex) {
     let lowestUnclickedY = -Infinity;
     
     for (let i = 0; i < tiles.length; i++) {
-        if (!tiles[i].clicked && tiles[i].y > lowestUnclickedY) {
+        if (!tiles[i].clicked && !tiles[i].passed && !tiles[i].isWrongKey && tiles[i].y > lowestUnclickedY) {
             lowestUnclickedY = tiles[i].y;
             lowestUnclickedIndex = i;
         }
@@ -745,9 +810,12 @@ function handleInput(colIndex) {
                     col: colIndex,
                     y: targetTile.y,
                     clicked: false,
-                    isError: true
+                    isError: true,
+                    isWrongKey: true
                 });
-                gameOver("Wrong key!");
+                if (!isPracticeMode) {
+                    gameOver("Wrong key!");
+                }
             }
         }
     }
@@ -756,6 +824,7 @@ function handleInput(colIndex) {
 function gameOver(reason) {
     isPlaying = false;
     cancelAnimationFrame(animationId);
+    btnQuitPractice.classList.add('hidden');
     draw();
     
     setTimeout(() => {
@@ -763,8 +832,8 @@ function gameOver(reason) {
             socket.emit('playerDied', currentRoom);
             showGameOver(false, "あなたのミスです...負けました。");
         } else {
-            // Save score locally/on server
-            if (score > 0) {
+            // Save score locally/on server (skip if practice mode)
+            if (score > 0 && !isPracticeMode) {
                 socket.emit('saveScore', { name: myName, score: score, mode: currentMode });
             }
             showGameOver(false, "");
