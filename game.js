@@ -700,8 +700,13 @@ function startGame() {
 function spawnTile(yPos) {
     let numTiles = 1;
     if (isChordMode) {
-        if (Math.random() < 0.5) numTiles = 2;
-        if (COLS >= 6 && Math.random() < 0.2) numTiles = 3;
+        let r = Math.random();
+        // 25% chance of simultaneous presses overall
+        if (COLS >= 6 && r < 0.05) {
+            numTiles = 3; // 5% chance of 3-note chord
+        } else if (r < 0.25) {
+            numTiles = 2; // 20% chance of 2-note chord
+        }
     }
     
     let chosenCols = [];
