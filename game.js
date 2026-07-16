@@ -279,8 +279,6 @@ btnCancel.addEventListener('click', () => {
 btnRestart.addEventListener('click', () => {
     gameOverScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
-    rankingScreen.classList.remove('hidden');
-    socket.emit('getRanking', currentRankingMode);
 });
 
 btnQuitPractice.addEventListener('click', () => {
@@ -292,8 +290,6 @@ btnQuitPractice.addEventListener('click', () => {
         optionsPanel.classList.add('hidden');
         scoreDisplay.classList.add('hidden');
         startScreen.classList.remove('hidden');
-        rankingScreen.classList.remove('hidden');
-        fetchRanking();
         drawBoard(); // Clear tiles
     }
 });
@@ -658,7 +654,12 @@ document.addEventListener('keydown', (e) => {
     if (!isPlaying) {
         if (e.code === 'Space') {
             if (!gameOverScreen.classList.contains('hidden')) {
-                btnRestart.click();
+                if (!isMultiplayer) {
+                    gameOverScreen.classList.add('hidden');
+                    btnSingle.click(); // Quick restart
+                } else {
+                    btnRestart.click();
+                }
             } else if (!startScreen.classList.contains('hidden')) {
                 if (document.activeElement !== playerNameInput) {
                     btnSingle.click();
