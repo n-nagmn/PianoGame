@@ -175,13 +175,13 @@ const valHid = document.getElementById('val-hid');
 sliderSud.addEventListener('input', (e) => {
     sudPercent = parseInt(e.target.value);
     valSud.innerText = sudPercent;
-    drawBoard();
+    draw();
 });
 
 sliderHid.addEventListener('input', (e) => {
     hidPercent = parseInt(e.target.value);
     valHid.innerText = hidPercent;
-    drawBoard();
+    draw();
 });
 const practiceSpeedSlider = document.getElementById('practice-speed-slider');
 const practiceSpeedVal = document.getElementById('practice-speed-val');
@@ -512,6 +512,7 @@ function openKeyConfig() {
 
     startScreen.classList.add('hidden');
     keyConfigScreen.classList.remove('hidden');
+    optionsPanel.classList.remove('hidden');
     document.getElementById('game-container-wrapper').style.display = 'flex';
     document.getElementById('side-panels').style.position = 'static';
 }
@@ -564,6 +565,7 @@ btnSaveKeys.addEventListener('click', () => {
     draw();
     
     keyConfigScreen.classList.add('hidden');
+    optionsPanel.classList.add('hidden');
     startScreen.classList.remove('hidden');
     document.getElementById('game-container-wrapper').style.display = 'block';
     document.getElementById('side-panels').style.position = 'absolute';
@@ -636,6 +638,7 @@ btnCancelKeys.addEventListener('click', () => {
     draw();
 
     keyConfigScreen.classList.add('hidden');
+    optionsPanel.classList.add('hidden');
     startScreen.classList.remove('hidden');
     document.getElementById('game-container-wrapper').style.display = 'block';
     document.getElementById('side-panels').style.position = 'absolute';
