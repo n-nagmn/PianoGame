@@ -713,10 +713,33 @@ function spawnTile(yPos) {
     for (let i = 0; i < numTiles; i++) {
         let col;
         let attempts = 0;
+        let isMuriOshi = false;
+        
         do {
             col = Math.floor(Math.random() * COLS);
+            
+            // 無理押し対策: 片手(左右半分)に3つ以上集中させない
+            isMuriOshi = false;
+            if (numTiles >= 3) {
+                let leftCount = 0;
+                let rightCount = 0;
+                let half = Math.floor(COLS / 2);
+                
+                for (let c of chosenCols) {
+                    if (c < half) leftCount++;
+                    else rightCount++;
+                }
+                
+                if (col < half) leftCount++;
+                else rightCount++;
+                
+                if (leftCount >= 3 || rightCount >= 3) {
+                    isMuriOshi = true;
+                }
+            }
+            
             attempts++;
-        } while (chosenCols.includes(col) && attempts < 10);
+        } while ((chosenCols.includes(col) || isMuriOshi) && attempts < 20);
         
         if (!chosenCols.includes(col)) {
             chosenCols.push(col);
