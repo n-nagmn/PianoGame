@@ -163,28 +163,19 @@ const practiceSpeedSlider = document.getElementById('practice-speed-slider');
 const practiceSpeedVal = document.getElementById('practice-speed-val');
 const btnQuitPractice = document.getElementById('btn-quit-practice');
 
-let stats = { great: 0, good: 0, bad: 0, poor: 0, fast: 0, slow: 0 };
+let stats = { great: 0, poor: 0 };
 let totalHits = 0;
 const statsScreen = document.getElementById('stats-screen');
 const elAccuracy = document.getElementById('stat-accuracy');
 const elGreat = document.getElementById('stat-great');
-const elGood = document.getElementById('stat-good');
-const elBad = document.getElementById('stat-bad');
 const elPoor = document.getElementById('stat-poor');
-const elFast = document.getElementById('stat-fast');
-const elSlow = document.getElementById('stat-slow');
-const elTimingIndicator = document.getElementById('timing-indicator');
 
 function updateStatsDisplay() {
     elGreat.innerText = stats.great;
-    elGood.innerText = stats.good;
-    elBad.innerText = stats.bad;
     elPoor.innerText = stats.poor;
-    elFast.innerText = stats.fast;
-    elSlow.innerText = stats.slow;
     
     if (totalHits > 0) {
-        let acc = ((stats.great * 100 + stats.good * 50) / (totalHits * 100)) * 100;
+        let acc = (stats.great / totalHits) * 100;
         elAccuracy.innerText = acc.toFixed(2);
     } else {
         elAccuracy.innerText = "0.00";
@@ -648,16 +639,16 @@ function startGame() {
     scoreDisplay.innerText = score;
     scoreDisplay.classList.remove('hidden');
     
-    stats = { great: 0, good: 0, bad: 0, poor: 0, fast: 0, slow: 0 };
+    stats = { great: 0, poor: 0 };
     totalHits = 0;
     updateStatsDisplay();
-    statsScreen.classList.remove('hidden');
-    elTimingIndicator.style.left = '50%';
     
     if (isPracticeMode) {
         practiceMenuScreen.classList.remove('hidden');
+        statsScreen.classList.remove('hidden');
     } else {
         practiceMenuScreen.classList.add('hidden');
+        statsScreen.classList.add('hidden');
     }
     
     if (isMultiplayer) {
@@ -834,37 +825,8 @@ function handleInput(colIndex) {
             if (targetTile.col === colIndex) {
                 targetTile.clicked = true;
                 
-                // Timing logic
-                let targetY = targetTile.y + TILE_PITCH;
-                let lineY = canvas.height - LINE_OFFSET;
-                let diff = targetY - lineY;
-                let frames = Math.abs(diff) / speed;
-                
                 totalHits++;
-                
-                if (frames <= 3) {
-                    stats.great++;
-                } else if (frames <= 6) {
-                    stats.good++;
-                } else if (frames <= 10) {
-                    stats.bad++;
-                } else {
-                    stats.poor++;
-                }
-                
-                if (diff < 0) {
-                    stats.fast++;
-                    let percent = 50 - (frames / 10) * 50;
-                    if (percent < 0) percent = 0;
-                    elTimingIndicator.style.left = percent + '%';
-                } else if (diff > 0) {
-                    stats.slow++;
-                    let percent = 50 + (frames / 10) * 50;
-                    if (percent > 100) percent = 100;
-                    elTimingIndicator.style.left = percent + '%';
-                } else {
-                    elTimingIndicator.style.left = '50%';
-                }
+                stats.great++;
                 
                 updateStatsDisplay();
                 
