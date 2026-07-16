@@ -160,7 +160,27 @@ let isChordMode = false;
 
 const practiceToggle = document.getElementById('practice-mode-toggle');
 const chordToggle = document.getElementById('chord-mode-toggle');
+const optionsPanel = document.getElementById('options-panel');
 const practiceMenuScreen = document.getElementById('practice-menu-screen');
+
+let sudPercent = 0;
+let hidPercent = 0;
+const sliderSud = document.getElementById('slider-sud');
+const sliderHid = document.getElementById('slider-hid');
+const valSud = document.getElementById('val-sud');
+const valHid = document.getElementById('val-hid');
+
+sliderSud.addEventListener('input', (e) => {
+    sudPercent = parseInt(e.target.value);
+    valSud.innerText = sudPercent;
+    drawBoard();
+});
+
+sliderHid.addEventListener('input', (e) => {
+    hidPercent = parseInt(e.target.value);
+    valHid.innerText = hidPercent;
+    drawBoard();
+});
 const practiceSpeedSlider = document.getElementById('practice-speed-slider');
 const practiceSpeedVal = document.getElementById('practice-speed-val');
 const btnQuitPractice = document.getElementById('btn-quit-practice');
@@ -267,6 +287,7 @@ btnQuitPractice.addEventListener('click', () => {
         cancelAnimationFrame(animationId);
         practiceMenuScreen.classList.add('hidden');
         statsScreen.classList.add('hidden');
+        optionsPanel.classList.add('hidden');
         scoreDisplay.classList.add('hidden');
         startScreen.classList.remove('hidden');
         rankingScreen.classList.remove('hidden');
@@ -667,6 +688,8 @@ function startGame() {
     totalHits = 0;
     updateStatsDisplay();
     
+    optionsPanel.classList.remove('hidden');
+    
     if (isPracticeMode) {
         practiceMenuScreen.classList.remove('hidden');
         statsScreen.classList.remove('hidden');
@@ -875,6 +898,32 @@ function drawBoard() {
         ctx.lineTo(canvas.width, canvas.height - LINE_OFFSET);
         ctx.stroke();
     }
+    
+    // SUDDEN+
+    if (sudPercent > 0) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        let sudHeight = canvas.height * (sudPercent / 100);
+        ctx.fillRect(0, 0, canvas.width, sudHeight);
+        ctx.strokeStyle = '#2196f3';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, sudHeight);
+        ctx.lineTo(canvas.width, sudHeight);
+        ctx.stroke();
+    }
+    
+    // HIDDEN+
+    if (hidPercent > 0) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        let hidHeight = canvas.height * (hidPercent / 100);
+        ctx.fillRect(0, canvas.height - hidHeight, canvas.width, hidHeight);
+        ctx.strokeStyle = '#4caf50';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height - hidHeight);
+        ctx.lineTo(canvas.width, canvas.height - hidHeight);
+        ctx.stroke();
+    }
 }
 
 function handleInput(colIndex) {
@@ -930,6 +979,7 @@ function gameOver(reason) {
     cancelAnimationFrame(animationId);
     practiceMenuScreen.classList.add('hidden');
     statsScreen.classList.add('hidden');
+    optionsPanel.classList.add('hidden');
     draw();
     
     setTimeout(() => {
