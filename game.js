@@ -29,8 +29,10 @@ const btnCloseRanking = document.getElementById('btn-close-ranking');
 const btnKeyConfig = document.getElementById('btn-key-config');
 const keyConfigScreen = document.getElementById('key-config-screen');
 const btnSaveKeys = document.getElementById('btn-save-keys');
+const btnLoadKeys = document.getElementById('btn-load-keys');
 const btnCancelKeys = document.getElementById('btn-cancel-keys');
 const btnResetKeys = document.getElementById('btn-reset-keys');
+const configProfileSelect = document.getElementById('config-profile-select');
 
 // Game constants
 let COLS = 4;
@@ -529,18 +531,32 @@ btnSaveKeys.addEventListener('click', () => {
     
     const slider = document.getElementById('tile-length-slider');
     TILE_HEIGHT = parseInt(slider.value);
-    localStorage.setItem('pianoGameTileHeight', TILE_HEIGHT);
     
     SHOW_JUDGEMENT_LINE = document.getElementById('show-judgement-line').checked;
-    localStorage.setItem('pianoGameShowLine', SHOW_JUDGEMENT_LINE);
     
     const lineSlider = document.getElementById('line-offset-slider');
     LINE_OFFSET = parseInt(lineSlider.value);
-    localStorage.setItem('pianoGameLineOffset', LINE_OFFSET);
     
-    localStorage.setItem('pianoGameKeys', JSON.stringify(userKeys));
-    localStorage.setItem('pianoGameColors', JSON.stringify(userColors));
-    localStorage.setItem('pianoGameWidths', JSON.stringify(userWidths));
+    const profile = configProfileSelect.value;
+    const suffix = profile === "1" ? "" : `_${profile}`;
+    
+    localStorage.setItem(`pianoGameTileHeight${suffix}`, TILE_HEIGHT);
+    localStorage.setItem(`pianoGameShowLine${suffix}`, SHOW_JUDGEMENT_LINE);
+    localStorage.setItem(`pianoGameLineOffset${suffix}`, LINE_OFFSET);
+    localStorage.setItem(`pianoGameKeys${suffix}`, JSON.stringify(userKeys));
+    localStorage.setItem(`pianoGameColors${suffix}`, JSON.stringify(userColors));
+    localStorage.setItem(`pianoGameWidths${suffix}`, JSON.stringify(userWidths));
+    
+    // Always save to the active slot as well, so it loads on next refresh
+    if (profile !== "1") {
+        localStorage.setItem('pianoGameTileHeight', TILE_HEIGHT);
+        localStorage.setItem('pianoGameShowLine', SHOW_JUDGEMENT_LINE);
+        localStorage.setItem('pianoGameLineOffset', LINE_OFFSET);
+        localStorage.setItem('pianoGameKeys', JSON.stringify(userKeys));
+        localStorage.setItem('pianoGameColors', JSON.stringify(userColors));
+        localStorage.setItem('pianoGameWidths', JSON.stringify(userWidths));
+    }
+    
     updateModeLabels();
     const configModeVal = document.querySelector('input[name="configMode"]:checked').value;
     setMode(configModeVal);
@@ -551,6 +567,47 @@ btnSaveKeys.addEventListener('click', () => {
     
     keyConfigScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
+    
+    alert(`プロファイル ${profile} に設定を保存しました！`);
+});
+
+btnLoadKeys.addEventListener('click', () => {
+    const profile = configProfileSelect.value;
+    const suffix = profile === "1" ? "" : `_${profile}`;
+    
+    try {
+        const sk = JSON.parse(localStorage.getItem(`pianoGameKeys${suffix}`));
+        if (sk) userKeys = Object.assign({}, defaultKeys, sk);
+        
+        const sc = JSON.parse(localStorage.getItem(`pianoGameColors${suffix}`));
+        if (sc) userColors = Object.assign({}, defaultColors, sc);
+        
+        const sw = JSON.parse(localStorage.getItem(`pianoGameWidths${suffix}`));
+        if (sw) userWidths = Object.assign({}, defaultWidths, sw);
+        
+        let savedHeight = localStorage.getItem(`pianoGameTileHeight${suffix}`);
+        if (savedHeight !== null) {
+            document.getElementById('tile-length-slider').value = savedHeight;
+            document.getElementById('tile-length-val').innerText = savedHeight;
+        }
+        
+        let savedShow = localStorage.getItem(`pianoGameShowLine${suffix}`);
+        if (savedShow !== null) {
+            document.getElementById('show-judgement-line').checked = (savedShow === 'true');
+        }
+        
+        let savedOffset = localStorage.getItem(`pianoGameLineOffset${suffix}`);
+        if (savedOffset !== null) {
+            document.getElementById('line-offset-slider').value = savedOffset;
+            document.getElementById('line-offset-val').innerText = savedOffset;
+        }
+        
+        // Re-open config screen to refresh inputs
+        openKeyConfig();
+        alert(`プロファイル ${profile} の設定を読み込みました！`);
+    } catch (e) {
+        alert("設定の読み込みに失敗しました。");
+    }
 });
 
 btnCancelKeys.addEventListener('click', () => {
