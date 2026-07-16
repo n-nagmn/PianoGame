@@ -8,7 +8,7 @@
 </head>
 <body>
     <div id="wrapper" style="display: flex; justify-content: center; align-items: flex-start; width: 100%;">
-        <div id="game-container-wrapper" style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;">
+        <div id="game-container-wrapper" style="position: relative;">
             <div id="game-container">
             <canvas id="gameCanvas" width="400" height="800"></canvas>
         <div id="ui-layer">
@@ -65,7 +65,7 @@
         </div> <!-- Close ui-layer -->
         </div> <!-- Close game-container -->
         
-        <div id="side-panels" style="display: flex; flex-direction: column; gap: 20px;">
+        <div id="side-panels" style="position: absolute; left: 100%; top: 0; margin-left: 20px; display: flex; flex-direction: column; gap: 20px;">
         <div id="stats-screen" class="hidden" style="background-color: rgba(0,0,0,0.8); padding: 15px 20px; border-radius: 10px; width: 350px; flex-shrink: 0; display: flex; flex-direction: column; border: 1px solid #555; color: white;">
             <h2 style="margin-top: 0; font-size: 22px; text-align: center; color: #4CAF50;">STATS</h2>
             
