@@ -701,11 +701,11 @@ function spawnTile(yPos) {
     let numTiles = 1;
     if (isChordMode) {
         let r = Math.random();
-        // 15% chance of simultaneous presses overall
-        if (COLS >= 6 && r < 0.03) {
-            numTiles = 3; // 3% chance of 3-note chord
-        } else if (r < 0.15) {
-            numTiles = 2; // 12% chance of 2-note chord
+        // Total 20% chance of simultaneous presses
+        if (COLS >= 6 && r < 0.05) {
+            numTiles = 3; // 5% chance of 3-note chord
+        } else if (r < 0.20) {
+            numTiles = 2; // 15% chance of 2-note chord (0.05 to 0.20)
         }
     }
     
