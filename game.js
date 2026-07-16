@@ -866,6 +866,32 @@ function draw() {
         ctx.lineWidth = 1;
         ctx.strokeRect(tile.col * COL_WIDTH, drawY, COL_WIDTH, TILE_HEIGHT);
     }
+    
+    // SUDDEN+
+    if (sudPercent > 0) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        let sudHeight = canvas.height * (sudPercent / 100);
+        ctx.fillRect(0, 0, canvas.width, sudHeight);
+        ctx.strokeStyle = '#2196f3';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, sudHeight);
+        ctx.lineTo(canvas.width, sudHeight);
+        ctx.stroke();
+    }
+    
+    // HIDDEN+
+    if (hidPercent > 0) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        let hidHeight = canvas.height * (hidPercent / 100);
+        ctx.fillRect(0, canvas.height - hidHeight, canvas.width, hidHeight);
+        ctx.strokeStyle = '#4caf50';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height - hidHeight);
+        ctx.lineTo(canvas.width, canvas.height - hidHeight);
+        ctx.stroke();
+    }
 }
 
 function drawBoard() {
@@ -896,32 +922,6 @@ function drawBoard() {
         ctx.beginPath();
         ctx.moveTo(0, canvas.height - LINE_OFFSET);
         ctx.lineTo(canvas.width, canvas.height - LINE_OFFSET);
-        ctx.stroke();
-    }
-    
-    // SUDDEN+
-    if (sudPercent > 0) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
-        let sudHeight = canvas.height * (sudPercent / 100);
-        ctx.fillRect(0, 0, canvas.width, sudHeight);
-        ctx.strokeStyle = '#2196f3';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, sudHeight);
-        ctx.lineTo(canvas.width, sudHeight);
-        ctx.stroke();
-    }
-    
-    // HIDDEN+
-    if (hidPercent > 0) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
-        let hidHeight = canvas.height * (hidPercent / 100);
-        ctx.fillRect(0, canvas.height - hidHeight, canvas.width, hidHeight);
-        ctx.strokeStyle = '#4caf50';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, canvas.height - hidHeight);
-        ctx.lineTo(canvas.width, canvas.height - hidHeight);
         ctx.stroke();
     }
 }
