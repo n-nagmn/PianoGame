@@ -163,6 +163,34 @@ const practiceSpeedSlider = document.getElementById('practice-speed-slider');
 const practiceSpeedVal = document.getElementById('practice-speed-val');
 const btnQuitPractice = document.getElementById('btn-quit-practice');
 
+let stats = { great: 0, good: 0, bad: 0, poor: 0, fast: 0, slow: 0 };
+let totalHits = 0;
+const statsScreen = document.getElementById('stats-screen');
+const elAccuracy = document.getElementById('stat-accuracy');
+const elGreat = document.getElementById('stat-great');
+const elGood = document.getElementById('stat-good');
+const elBad = document.getElementById('stat-bad');
+const elPoor = document.getElementById('stat-poor');
+const elFast = document.getElementById('stat-fast');
+const elSlow = document.getElementById('stat-slow');
+const elTimingIndicator = document.getElementById('timing-indicator');
+
+function updateStatsDisplay() {
+    elGreat.innerText = stats.great;
+    elGood.innerText = stats.good;
+    elBad.innerText = stats.bad;
+    elPoor.innerText = stats.poor;
+    elFast.innerText = stats.fast;
+    elSlow.innerText = stats.slow;
+    
+    if (totalHits > 0) {
+        let acc = ((stats.great * 100 + stats.good * 50) / (totalHits * 100)) * 100;
+        elAccuracy.innerText = acc.toFixed(2);
+    } else {
+        elAccuracy.innerText = "0.00";
+    }
+}
+
 practiceToggle.addEventListener('change', (e) => {
     isPracticeMode = e.target.checked;
 });
@@ -240,6 +268,7 @@ btnQuitPractice.addEventListener('click', () => {
         isPlaying = false;
         cancelAnimationFrame(animationId);
         practiceMenuScreen.classList.add('hidden');
+        statsScreen.classList.add('hidden');
         scoreDisplay.classList.add('hidden');
         startScreen.classList.remove('hidden');
         rankingScreen.classList.remove('hidden');
@@ -619,6 +648,12 @@ function startGame() {
     scoreDisplay.innerText = score;
     scoreDisplay.classList.remove('hidden');
     
+    stats = { great: 0, good: 0, bad: 0, poor: 0, fast: 0, slow: 0 };
+    totalHits = 0;
+    updateStatsDisplay();
+    statsScreen.classList.remove('hidden');
+    elTimingIndicator.style.left = '50%';
+    
     if (isPracticeMode) {
         practiceMenuScreen.classList.remove('hidden');
     } else {
@@ -688,6 +723,10 @@ function update() {
     
     // Check if the lowest unclicked tile passed the bottom
     if (lowestUnclicked && lowestUnclicked.y + (TILE_PITCH - TILE_HEIGHT) > canvas.height) {
+        stats.poor++;
+        totalHits++;
+        updateStatsDisplay();
+        
         if (isPracticeMode) {
             lowestUnclicked.passed = true;
             lowestUnclicked.isError = true;
@@ -794,6 +833,41 @@ function handleInput(colIndex) {
         if (targetTile.y + TILE_PITCH > 0) {
             if (targetTile.col === colIndex) {
                 targetTile.clicked = true;
+                
+                // Timing logic
+                let targetY = targetTile.y + TILE_PITCH;
+                let lineY = canvas.height - LINE_OFFSET;
+                let diff = targetY - lineY;
+                let frames = Math.abs(diff) / speed;
+                
+                totalHits++;
+                
+                if (frames <= 3) {
+                    stats.great++;
+                } else if (frames <= 6) {
+                    stats.good++;
+                } else if (frames <= 10) {
+                    stats.bad++;
+                } else {
+                    stats.poor++;
+                }
+                
+                if (diff < 0) {
+                    stats.fast++;
+                    let percent = 50 - (frames / 10) * 50;
+                    if (percent < 0) percent = 0;
+                    elTimingIndicator.style.left = percent + '%';
+                } else if (diff > 0) {
+                    stats.slow++;
+                    let percent = 50 + (frames / 10) * 50;
+                    if (percent > 100) percent = 100;
+                    elTimingIndicator.style.left = percent + '%';
+                } else {
+                    elTimingIndicator.style.left = '50%';
+                }
+                
+                updateStatsDisplay();
+                
                 score++;
                 scoreDisplay.innerText = score;
                 
@@ -801,6 +875,10 @@ function handleInput(colIndex) {
                     socket.emit('gameState', { room: currentRoom, score: score, tiles: tiles });
                 }
             } else {
+                stats.poor++;
+                totalHits++;
+                updateStatsDisplay();
+                
                 tiles.push({
                     col: colIndex,
                     y: targetTile.y,
@@ -820,6 +898,7 @@ function gameOver(reason) {
     isPlaying = false;
     cancelAnimationFrame(animationId);
     practiceMenuScreen.classList.add('hidden');
+    statsScreen.classList.add('hidden');
     draw();
     
     setTimeout(() => {
