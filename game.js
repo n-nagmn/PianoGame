@@ -158,18 +158,13 @@ let isPracticeMode = false;
 let practiceFixedSpeed = 5;
 
 const practiceToggle = document.getElementById('practice-mode-toggle');
-const practiceSpeedContainer = document.getElementById('practice-speed-container');
+const practiceMenuScreen = document.getElementById('practice-menu-screen');
 const practiceSpeedSlider = document.getElementById('practice-speed-slider');
 const practiceSpeedVal = document.getElementById('practice-speed-val');
 const btnQuitPractice = document.getElementById('btn-quit-practice');
 
 practiceToggle.addEventListener('change', (e) => {
     isPracticeMode = e.target.checked;
-    if (isPracticeMode) {
-        practiceSpeedContainer.classList.remove('hidden');
-    } else {
-        practiceSpeedContainer.classList.add('hidden');
-    }
 });
 
 practiceSpeedSlider.addEventListener('input', (e) => {
@@ -244,7 +239,7 @@ btnQuitPractice.addEventListener('click', () => {
     if (isPlaying && isPracticeMode) {
         isPlaying = false;
         cancelAnimationFrame(animationId);
-        btnQuitPractice.classList.add('hidden');
+        practiceMenuScreen.classList.add('hidden');
         scoreDisplay.classList.add('hidden');
         startScreen.classList.remove('hidden');
         rankingScreen.classList.remove('hidden');
@@ -625,9 +620,9 @@ function startGame() {
     scoreDisplay.classList.remove('hidden');
     
     if (isPracticeMode) {
-        btnQuitPractice.classList.remove('hidden');
+        practiceMenuScreen.classList.remove('hidden');
     } else {
-        btnQuitPractice.classList.add('hidden');
+        practiceMenuScreen.classList.add('hidden');
     }
     
     if (isMultiplayer) {
@@ -824,7 +819,7 @@ function handleInput(colIndex) {
 function gameOver(reason) {
     isPlaying = false;
     cancelAnimationFrame(animationId);
-    btnQuitPractice.classList.add('hidden');
+    practiceMenuScreen.classList.add('hidden');
     draw();
     
     setTimeout(() => {
