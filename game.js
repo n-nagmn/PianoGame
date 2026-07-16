@@ -869,7 +869,7 @@ function draw() {
     
     // SUDDEN+
     if (sudPercent > 0) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        ctx.fillStyle = 'black';
         let sudHeight = canvas.height * (sudPercent / 100);
         ctx.fillRect(0, 0, canvas.width, sudHeight);
         ctx.strokeStyle = '#2196f3';
@@ -882,7 +882,7 @@ function draw() {
     
     // HIDDEN+
     if (hidPercent > 0) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        ctx.fillStyle = 'black';
         let hidHeight = canvas.height * (hidPercent / 100);
         ctx.fillRect(0, canvas.height - hidHeight, canvas.width, hidHeight);
         ctx.strokeStyle = '#4caf50';
