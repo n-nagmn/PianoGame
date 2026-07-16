@@ -516,8 +516,6 @@ function openKeyConfig() {
 
     startScreen.classList.add('hidden');
     keyConfigScreen.classList.remove('hidden');
-    document.getElementById('wrapper').style.justifyContent = 'flex-start';
-    document.getElementById('wrapper').style.paddingLeft = '20px';
 }
 
 btnKeyConfig.addEventListener('click', openKeyConfig);
@@ -569,8 +567,6 @@ btnSaveKeys.addEventListener('click', () => {
     
     keyConfigScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
-    document.getElementById('wrapper').style.justifyContent = 'center';
-    document.getElementById('wrapper').style.paddingLeft = '0';
     
     alert(`プロファイル ${profile} に設定を保存しました！`);
 });
@@ -641,8 +637,6 @@ btnCancelKeys.addEventListener('click', () => {
 
     keyConfigScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
-    document.getElementById('wrapper').style.justifyContent = 'center';
-    document.getElementById('wrapper').style.paddingLeft = '0';
 });
 
 btnResetKeys.addEventListener('click', () => {
