@@ -569,8 +569,6 @@ btnSaveKeys.addEventListener('click', () => {
     startScreen.classList.remove('hidden');
     document.getElementById('game-container-wrapper').style.display = 'block';
     document.getElementById('side-panels').style.position = 'absolute';
-    
-    alert(`プロファイル ${profile} に設定を保存しました！`);
 });
 
 btnLoadKeys.addEventListener('click', () => {
@@ -606,9 +604,8 @@ btnLoadKeys.addEventListener('click', () => {
         
         // Re-open config screen to refresh inputs
         openKeyConfig();
-        alert(`プロファイル ${profile} の設定を読み込みました！`);
     } catch (e) {
-        alert("設定の読み込みに失敗しました。");
+        console.error("設定の読み込みに失敗しました。", e);
     }
 });
 
