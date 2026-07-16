@@ -23,7 +23,8 @@
                     <label><input type="radio" name="gameMode" value="dp"> <span id="label-dp">DP (16鍵)</span></label>
                 </div>
                 <div style="margin-bottom: 20px; color: white; text-align: left; background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; width: 80%;">
-                    <label style="cursor: pointer;"><input type="checkbox" id="practice-mode-toggle"> 練習モード (ミスで終了しない)</label>
+                    <label style="cursor: pointer; display: block; margin-bottom: 10px;"><input type="checkbox" id="practice-mode-toggle"> 練習モード (ミスで終了しない)</label>
+                    <label style="cursor: pointer; display: block;"><input type="checkbox" id="chord-mode-toggle"> 同時押しあり</label>
                 </div>
                 <button id="btn-single">シングルプレイ</button>
                 <button id="btn-multi">オンライン対戦</button>
@@ -51,6 +52,9 @@
                     <button id="btn-rank-another" style="width: auto; padding: 8px 12px; font-size: 14px; margin: 0;">Another</button>
                     <button id="btn-rank-leggendaria" style="width: auto; padding: 8px 12px; font-size: 14px; margin: 0;">Leggendaria</button>
                     <button id="btn-rank-dp" style="width: auto; padding: 8px 12px; font-size: 14px; margin: 0;">DP</button>
+                </div>
+                <div style="margin-bottom: 10px; color: white;">
+                    <label style="cursor: pointer;"><input type="checkbox" id="ranking-chord-toggle"> 同時押しモードのランキングを表示</label>
                 </div>
                 <ul id="ranking-list"></ul>
                 <button id="btn-close-ranking">閉じる</button>

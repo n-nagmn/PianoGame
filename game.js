@@ -156,8 +156,10 @@ let myName = "Player";
 let currentRoom = null;
 let isPracticeMode = false;
 let practiceFixedSpeed = 5;
+let isChordMode = false;
 
 const practiceToggle = document.getElementById('practice-mode-toggle');
+const chordToggle = document.getElementById('chord-mode-toggle');
 const practiceMenuScreen = document.getElementById('practice-menu-screen');
 const practiceSpeedSlider = document.getElementById('practice-speed-slider');
 const practiceSpeedVal = document.getElementById('practice-speed-val');
@@ -222,6 +224,7 @@ btnSingle.addEventListener('click', () => {
     setMode(modeVal);
     
     isPracticeMode = practiceToggle.checked;
+    isChordMode = chordToggle.checked;
     isMultiplayer = false;
     startScreen.classList.add('hidden');
     startGame();
@@ -235,10 +238,14 @@ btnMulti.addEventListener('click', () => {
     setMode(modeVal);
     
     isPracticeMode = false; // Disable practice mode in multiplayer
+    isChordMode = chordToggle.checked;
     isMultiplayer = true;
     startScreen.classList.add('hidden');
     waitingScreen.classList.remove('hidden');
-    socket.emit('findMatch', { name: myName, mode: currentMode });
+    
+    let matchMode = currentMode;
+    if (isChordMode) matchMode += '_chord';
+    socket.emit('findMatch', { name: myName, mode: matchMode });
 });
 
 btnCancel.addEventListener('click', () => {
@@ -263,56 +270,74 @@ btnQuitPractice.addEventListener('click', () => {
         scoreDisplay.classList.add('hidden');
         startScreen.classList.remove('hidden');
         rankingScreen.classList.remove('hidden');
-        socket.emit('getRanking', currentRankingMode);
+        fetchRanking();
         drawBoard(); // Clear tiles
     }
 });
 
 let currentRankingMode = 'normal';
+const rankingChordToggle = document.getElementById('ranking-chord-toggle');
 
 function updateRankingTitle() {
     const title = document.getElementById('ranking-title');
-    if (currentRankingMode === 'normal') title.innerText = 'ランキング (Normal)';
-    if (currentRankingMode === 'hyper') title.innerText = 'ランキング (Hyper)';
-    if (currentRankingMode === 'another') title.innerText = 'ランキング (Another)';
-    if (currentRankingMode === 'leggendaria') title.innerText = 'ランキング (Leggendaria)';
-    if (currentRankingMode === 'dp') title.innerText = 'ランキング (DP)';
+    let titleText = 'ランキング';
+    if (currentRankingMode === 'normal') titleText += ' (Normal)';
+    if (currentRankingMode === 'hyper') titleText += ' (Hyper)';
+    if (currentRankingMode === 'another') titleText += ' (Another)';
+    if (currentRankingMode === 'leggendaria') titleText += ' (Leggendaria)';
+    if (currentRankingMode === 'dp') titleText += ' (DP)';
+    if (rankingChordToggle.checked) titleText += ' [同時押し]';
+    title.innerText = titleText;
 }
+
+function fetchRanking() {
+    let modeToFetch = currentRankingMode;
+    if (rankingChordToggle.checked) {
+        modeToFetch += '_chord';
+    }
+    socket.emit('getRanking', modeToFetch);
+}
+
+rankingChordToggle.addEventListener('change', () => {
+    updateRankingTitle();
+    fetchRanking();
+});
 
 btnRanking.addEventListener('click', () => {
     currentRankingMode = document.querySelector('input[name="gameMode"]:checked').value;
+    rankingChordToggle.checked = chordToggle.checked;
     updateRankingTitle();
-    socket.emit('getRanking', currentRankingMode);
+    fetchRanking();
 });
 
 document.getElementById('btn-rank-normal').addEventListener('click', () => {
     currentRankingMode = 'normal';
     updateRankingTitle();
-    socket.emit('getRanking', currentRankingMode);
+    fetchRanking();
 });
 
 document.getElementById('btn-rank-hyper').addEventListener('click', () => {
     currentRankingMode = 'hyper';
     updateRankingTitle();
-    socket.emit('getRanking', currentRankingMode);
+    fetchRanking();
 });
 
 document.getElementById('btn-rank-another').addEventListener('click', () => {
     currentRankingMode = 'another';
     updateRankingTitle();
-    socket.emit('getRanking', currentRankingMode);
+    fetchRanking();
 });
 
 document.getElementById('btn-rank-leggendaria').addEventListener('click', () => {
     currentRankingMode = 'leggendaria';
     updateRankingTitle();
-    socket.emit('getRanking', currentRankingMode);
+    fetchRanking();
 });
 
 document.getElementById('btn-rank-dp').addEventListener('click', () => {
     currentRankingMode = 'dp';
     updateRankingTitle();
-    socket.emit('getRanking', currentRankingMode);
+    fetchRanking();
 });
 
 btnCloseRanking.addEventListener('click', () => {
@@ -674,13 +699,31 @@ function startGame() {
 }
 
 function spawnTile(yPos) {
-    const col = Math.floor(Math.random() * COLS);
-    tiles.push({
-        col: col,
-        y: yPos,
-        clicked: false,
-        isError: false
-    });
+    let numTiles = 1;
+    if (isChordMode) {
+        if (Math.random() < 0.5) numTiles = 2;
+        if (COLS >= 6 && Math.random() < 0.2) numTiles = 3;
+    }
+    
+    let chosenCols = [];
+    for (let i = 0; i < numTiles; i++) {
+        let col;
+        let attempts = 0;
+        do {
+            col = Math.floor(Math.random() * COLS);
+            attempts++;
+        } while (chosenCols.includes(col) && attempts < 10);
+        
+        if (!chosenCols.includes(col)) {
+            chosenCols.push(col);
+            tiles.push({
+                col: col,
+                y: yPos,
+                clicked: false,
+                isError: false
+            });
+        }
+    }
 }
 
 function gameLoop() {
@@ -808,22 +851,21 @@ function drawBoard() {
 }
 
 function handleInput(colIndex) {
-    let lowestUnclickedIndex = -1;
     let lowestUnclickedY = -Infinity;
     
     for (let i = 0; i < tiles.length; i++) {
         if (!tiles[i].clicked && !tiles[i].passed && !tiles[i].isWrongKey && tiles[i].y > lowestUnclickedY) {
             lowestUnclickedY = tiles[i].y;
-            lowestUnclickedIndex = i;
         }
     }
     
-    if (lowestUnclickedIndex !== -1) {
-        let targetTile = tiles[lowestUnclickedIndex];
+    if (lowestUnclickedY > -Infinity) {
+        let targetTiles = tiles.filter(t => !t.clicked && !t.passed && !t.isWrongKey && t.y === lowestUnclickedY);
+        let matchingTile = targetTiles.find(t => t.col === colIndex);
         
-        if (targetTile.y + TILE_PITCH > 0) {
-            if (targetTile.col === colIndex) {
-                targetTile.clicked = true;
+        if (lowestUnclickedY + TILE_PITCH > 0) {
+            if (matchingTile) {
+                matchingTile.clicked = true;
                 
                 totalHits++;
                 stats.great++;
@@ -843,7 +885,7 @@ function handleInput(colIndex) {
                 
                 tiles.push({
                     col: colIndex,
-                    y: targetTile.y,
+                    y: lowestUnclickedY,
                     clicked: false,
                     isError: true,
                     isWrongKey: true
@@ -870,7 +912,9 @@ function gameOver(reason) {
         } else {
             // Save score locally/on server (skip if practice mode)
             if (score > 0 && !isPracticeMode) {
-                socket.emit('saveScore', { name: myName, score: score, mode: currentMode });
+                let saveMode = currentMode;
+                if (isChordMode) saveMode += '_chord';
+                socket.emit('saveScore', { name: myName, score: score, mode: saveMode });
             }
             showGameOver(false, "");
         }
