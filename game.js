@@ -112,6 +112,10 @@ function updateModeLabels() {
 }
 
 function setMode(mode) {
+    // オンラインマッチングは 'normal_chord' などの複合モードを渡す → 基本モード部分のみ適用
+    if (mode && mode.endsWith('_chord')) {
+        mode = mode.replace(/_chord$/, '');
+    }
     currentMode = mode;
     let newWidth = 400;
     
@@ -711,6 +715,7 @@ canvas.addEventListener('mousedown', handlePointerDown);
 socket.on('matchFound', (data) => {
     currentRoom = data.room;
     setMode(data.mode);
+    isChordMode = (data.mode || '').endsWith('_chord'); // チョードモードを反映
     waitingScreen.classList.add('hidden');
     startGame();
 });
@@ -732,9 +737,14 @@ socket.on('opponentState', (data) => {
 
 socket.on('rankingData', (data) => {
     rankingList.innerHTML = '';
-    data.forEach((entry, index) => {
+    (data || []).forEach((entry, index) => {
         const li = document.createElement('li');
-        li.innerHTML = `<span>${index + 1}. ${entry.name}</span><span>${entry.score}</span>`;
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = (index + 1) + '. ' + (entry.name || '???');
+        const scoreSpan = document.createElement('span');
+        scoreSpan.textContent = entry.score || 0;
+        li.appendChild(nameSpan);
+        li.appendChild(scoreSpan);
         rankingList.appendChild(li);
     });
     rankingScreen.classList.remove('hidden');
@@ -1083,6 +1093,7 @@ function showGameOver(isWin, message) {
 
 function drawOpponentBoard(oppTiles) {
     oppCtx.clearRect(0, 0, opponentCanvas.width, opponentCanvas.height);
+    if (!Array.isArray(oppTiles)) return;
     const scale = 0.5;
     oppCtx.strokeStyle = '#ccc';
     oppCtx.lineWidth = 1;
@@ -1093,12 +1104,9 @@ function drawOpponentBoard(oppTiles) {
         oppCtx.stroke();
     }
     oppTiles.forEach(tile => {
-        if (tile.active || !tile.clicked) {
-            oppCtx.fillStyle = '#000';
-        } else {
-            oppCtx.fillStyle = '#ddd';
-        }
         if (tile.isError) oppCtx.fillStyle = 'red';
+        else if (tile.clicked) oppCtx.fillStyle = '#ddd';
+        else oppCtx.fillStyle = '#000';
         let drawY = (tile.y + (TILE_PITCH - TILE_HEIGHT)) * scale;
         oppCtx.fillRect(tile.col * (COL_WIDTH * scale), drawY, COL_WIDTH * scale, TILE_HEIGHT * scale);
         oppCtx.strokeStyle = '#999';

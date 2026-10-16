@@ -12,13 +12,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 db.initDB();
 
-let waitingPlayers = {
-    normal: null,
-    hyper: null,
-    another: null,
-    leggendaria: null,
-    dp: null
-};
+// 対戦モード (基本モード + _chord 対応)
+const ALL_MODES = ['normal', 'hyper', 'another', 'leggendaria', 'dp']
+    .flatMap(m => [m, m + '_chord']);
+
+let waitingPlayers = {};
+ALL_MODES.forEach(m => { waitingPlayers[m] = null; });
 
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
@@ -64,6 +63,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('gameState', (data) => {
+        // 相手がまだルームに参加していない(切れた/未マッチ)場合は何もしない
+        if (!data || !data.room || typeof data.score === 'undefined') return;
         socket.to(data.room).emit('opponentState', data);
     });
 
