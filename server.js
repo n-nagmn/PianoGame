@@ -23,9 +23,9 @@ io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
     socket.on('saveScore', (data) => {
-        if (data.name && data.score !== undefined) {
-            db.saveScore(data.name, data.score, data.mode || 'normal');
-        }
+        // スコアは非負の整数のみ許可
+        if (!data || !data.name || !Number.isInteger(data.score) || data.score < 0) return;
+        db.saveScore(data.name, data.score, data.mode || 'normal');
     });
 
     socket.on('getRanking', (mode) => {

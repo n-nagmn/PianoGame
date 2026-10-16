@@ -163,6 +163,7 @@ let currentRoom = null;
 let isPracticeMode = false;
 let practiceFixedSpeed = 5;
 let isChordMode = false;
+let gameOverGeneration = 0; // game over timerの世代管理(再起動後の古いタイマーを無効化)
 
 const practiceToggle = document.getElementById('practice-mode-toggle');
 const chordToggle = document.getElementById('chord-mode-toggle');
@@ -655,6 +656,8 @@ btnResetKeys.addEventListener('click', () => {
 updateModeLabels();
 
 document.addEventListener('keydown', (e) => {
+    if (e.repeat) return;
+
     if (!isPlaying) {
         if (e.code === 'Space') {
             if (!gameOverScreen.classList.contains('hidden')) {
@@ -755,6 +758,7 @@ function startGame() {
     tiles = [];
     score = 0;
     speed = isPracticeMode ? practiceFixedSpeed : 5;
+    gameOverGeneration++; // 前回のgameOverから残っているsetTimeoutを無効化
     scoreDisplay.innerText = score;
     scoreDisplay.classList.remove('hidden');
     
@@ -1010,21 +1014,32 @@ function handleInput(colIndex) {
     }
     
     if (lowestUnclickedY > -Infinity) {
-        let targetTiles = tiles.filter(t => !t.clicked && !t.passed && !t.isWrongKey && t.y === lowestUnclickedY);
-        let matchingTile = targetTiles.find(t => t.col === colIndex);
-        
-        if (lowestUnclickedY + TILE_PITCH > 0) {
+        // タイミング判定ウィンドウ: 判定線(画面下部 - LINE_OFFSET)からの距離
+        const judgementY = canvas.height - LINE_OFFSET;
+        const dist = lowestUnclickedY + (TILE_PITCH - TILE_HEIGHT) - judgementY;
+        const absDist = Math.abs(dist);
+        const PERFECT_WINDOW = 100; // ±100px ≒ Perfect (speed 5 で約 ±200ms)
+        const GOOD_WINDOW = 200;    // ±200px ≒ Good
+
+        if (lowestUnclickedY + TILE_PITCH > 0 && absDist <= GOOD_WINDOW) {
+            let targetTiles = tiles.filter(t => !t.clicked && !t.passed && !t.isWrongKey && t.y === lowestUnclickedY);
+            let matchingTile = targetTiles.find(t => t.col === colIndex);
+
             if (matchingTile) {
                 matchingTile.clicked = true;
-                
+
                 totalHits++;
-                stats.great++;
-                
+                if (absDist <= PERFECT_WINDOW) {
+                    stats.great++;
+                } else {
+                    stats.poor++;
+                }
+
                 updateStatsDisplay();
-                
+
                 score++;
                 scoreDisplay.innerText = score;
-                
+
                 if (isMultiplayer) {
                     socket.emit('gameState', { room: currentRoom, score: score, tiles: tiles });
                 }
@@ -1032,7 +1047,7 @@ function handleInput(colIndex) {
                 stats.poor++;
                 totalHits++;
                 updateStatsDisplay();
-                
+
                 tiles.push({
                     col: colIndex,
                     y: lowestUnclickedY,
@@ -1055,8 +1070,11 @@ function gameOver(reason) {
     statsScreen.classList.add('hidden');
     optionsPanel.classList.add('hidden');
     draw();
-    
+
+    const generation = ++gameOverGeneration;
     setTimeout(() => {
+        // 再起動されている(新しいgameOver/startGameが呼ばれた)場合は無効化
+        if (generation !== gameOverGeneration) return;
         if (isMultiplayer) {
             socket.emit('playerDied', currentRoom);
             showGameOver(false, "あなたのミスです...負けました。");
