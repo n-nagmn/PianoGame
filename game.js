@@ -732,8 +732,12 @@ socket.on('opponentDied', () => {
 });
 
 socket.on('opponentState', (data) => {
-    if (isPlaying && isMultiplayer) {
-        opponentScoreDisplay.innerText = "Opponent: " + data.score;
+    if (isPlaying && isMultiplayer && data && typeof data === 'object') {
+        // スコアが不正な場合はこのパケットを黙って無視する
+        if (isFiniteNumber(data.score)) {
+            opponentScoreDisplay.innerText = "Opponent: " + data.score;
+        }
+        // drawOpponentBoard 内の検証が不正なタイルを無視する
         drawOpponentBoard(data.tiles);
     }
 });
@@ -1090,6 +1094,16 @@ function gameOver(reason) {
     }, 500);
 }
 
+// 相手からの切断通知: ゲームを終了して結果画面を表示(ソロ続行も可能にする選択肢の入口)
+socket.on('opponentDisconnected', () => {
+    if (isMultiplayer && isPlaying) {
+        isPlaying = false;
+        cancelAnimationFrame(animationId);
+        draw();
+        showGameOver(false, "相手が対戦から離脱しました。(スコアは保存されません)");
+    }
+});
+
 function showGameOver(isWin, message) {
     scoreDisplay.classList.add('hidden');
     opponentScoreDisplay.classList.add('hidden');
@@ -1099,7 +1113,7 @@ function showGameOver(isWin, message) {
         multiResult.innerText = message;
         multiResult.className = isWin ? 'win-text' : 'lose-text';
         multiResult.classList.remove('hidden');
-        document.getElementById('go-title').innerText = isWin ? "You Win!" : "You Lose!";
+        document.getElementById('go-title').innerText = isWin ? "You Win!" : "相手が離脱しました";
         document.getElementById('go-title').style.color = isWin ? "#4CAF50" : "#F44336";
     } else {
         document.getElementById('go-title').innerText = "Game Over";
@@ -1107,6 +1121,21 @@ function showGameOver(isWin, message) {
     }
     
     gameOverScreen.classList.remove('hidden');
+}
+
+function isFiniteNumber(v) {
+    return typeof v === 'number' && isFinite(v);
+}
+
+// 受信したタイルデータの検証: 不正・未知のノートは黙って無視する
+function isValidOpponentTile(tile, maxCol) {
+    return tile !== null && typeof tile === 'object'
+        && isFiniteNumber(tile.col)
+        && Number.isInteger(tile.col)
+        && tile.col >= 0 && tile.col <= maxCol
+        && isFiniteNumber(tile.y)
+        && (typeof tile.clicked === 'undefined' || typeof tile.clicked === 'boolean')
+        && (typeof tile.isError === 'undefined' || typeof tile.isError === 'boolean');
 }
 
 function drawOpponentBoard(oppTiles) {
@@ -1122,6 +1151,8 @@ function drawOpponentBoard(oppTiles) {
         oppCtx.stroke();
     }
     oppTiles.forEach(tile => {
+        // 不正なタイル(未知のノート/壊れたデータ)は描画しない(ファントムエラータイル対策)
+        if (!isValidOpponentTile(tile, COLS - 1)) return;
         if (tile.isError) oppCtx.fillStyle = 'red';
         else if (tile.clicked) oppCtx.fillStyle = '#ddd';
         else oppCtx.fillStyle = '#000';

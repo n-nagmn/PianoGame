@@ -69,12 +69,30 @@ io.on('connection', (socket) => {
     });
 
     socket.on('playerDied', (room) => {
+        if (typeof room !== 'string') return;
         socket.to(room).emit('opponentDied');
     });
 
     socket.on('disconnect', () => {
         if (waitingPlayers[socket.gameMode] === socket) {
             waitingPlayers[socket.gameMode] = null;
+        }
+        // 対戦中に相手が切断した場合に通知する
+        if (socket.gameMode) {
+            const rooms = socket.rooms;
+            if (rooms && rooms.size) {
+                const opponents = new Set();
+                rooms.forEach((room) => {
+                    if (room !== socket.id) {
+                        io.in(room).sockets.forEach((otherId) => {
+                            if (otherId !== socket.id) opponents.add(otherId);
+                        });
+                    }
+                });
+                if (opponents.size) {
+                    io.to([...opponents]).emit('opponentDisconnected');
+                }
+            }
         }
     });
 });
