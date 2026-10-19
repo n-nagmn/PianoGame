@@ -40,7 +40,8 @@ let COL_WIDTH = canvas.width / COLS;
 const TILE_PITCH = 150;
 let TILE_HEIGHT = parseInt(localStorage.getItem('pianoGameTileHeight'));
 if (isNaN(TILE_HEIGHT)) TILE_HEIGHT = 150;
-if (TILE_HEIGHT < 0) TILE_HEIGHT = 0;
+// L1: タイル高さの最小値を 10 にクランプ
+if (TILE_HEIGHT < 10) TILE_HEIGHT = 10;
 if (TILE_HEIGHT > 150) TILE_HEIGHT = 150;
 
 let SHOW_JUDGEMENT_LINE = localStorage.getItem('pianoGameShowLine') === 'true';
@@ -160,6 +161,9 @@ let isPlaying = false;
 let isMultiplayer = false;
 let myName = "Player";
 let currentRoom = null;
+// M7: 相手のボード寸法(マッチ時に受信)
+let opponentTileHeight = TILE_HEIGHT;
+let opponentBoardWidth = canvas.width;
 let isPracticeMode = false;
 let practiceFixedSpeed = 5;
 let isChordMode = false;
@@ -244,7 +248,8 @@ modeRadios.forEach(radio => {
 
 // Events
 btnSingle.addEventListener('click', () => {
-    myName = playerNameInput.value || "名無しさん";
+    // L7: 名牌は trim + 32文字制限
+    myName = normalizePlayerName(playerNameInput.value);
     localStorage.setItem('playerName', myName);
     
     const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
@@ -258,7 +263,8 @@ btnSingle.addEventListener('click', () => {
 });
 
 btnMulti.addEventListener('click', () => {
-    myName = playerNameInput.value || "名無しさん";
+    // L7: 名牌は trim + 32文字制限
+    myName = normalizePlayerName(playerNameInput.value);
     localStorage.setItem('playerName', myName);
     
     const modeVal = document.querySelector('input[name="gameMode"]:checked').value;
@@ -272,7 +278,8 @@ btnMulti.addEventListener('click', () => {
     
     let matchMode = currentMode;
     if (isChordMode) matchMode += '_chord';
-    socket.emit('findMatch', { name: myName, mode: matchMode });
+    // M7: 自分のボード寸法を相手に送信
+    socket.emit('findMatch', { name: myName, mode: matchMode, tileHeight: TILE_HEIGHT, boardWidth: canvas.width });
 });
 
 btnCancel.addEventListener('click', () => {
@@ -282,6 +289,14 @@ btnCancel.addEventListener('click', () => {
 });
 
 btnRestart.addEventListener('click', () => {
+    // M3: 対戦中は server 側に終了を通知してルームから離脱する
+    if (isMultiplayer) {
+        if (currentRoom) {
+            socket.emit('gameEnded', { room: currentRoom, score: score });
+        }
+        currentRoom = null;
+    }
+    isMultiplayer = false;
     gameOverScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
 });
@@ -628,7 +643,7 @@ btnCancelKeys.addEventListener('click', () => {
     
     TILE_HEIGHT = parseInt(localStorage.getItem('pianoGameTileHeight'));
     if (isNaN(TILE_HEIGHT)) TILE_HEIGHT = 150;
-    if (TILE_HEIGHT < 0) TILE_HEIGHT = 0;
+    if (TILE_HEIGHT < 10) TILE_HEIGHT = 10;
     
     SHOW_JUDGEMENT_LINE = localStorage.getItem('pianoGameShowLine') === 'true';
     
@@ -716,8 +731,22 @@ canvas.addEventListener('mousedown', handlePointerDown);
 
 // Socket Events
 socket.on('matchFound', (data) => {
+    // M1: 重複マッチの保険: 既にプレイ中は開始せず
+    if (isPlaying) return;
+    cancelAnimationFrame(animationId);
     currentRoom = data.room;
     setMode(data.mode);
+    // M7: 相手のボード寸法を保存(不正な場合は自分の値にフォールバック)
+    if (Number.isFinite(data.tileHeight) && data.tileHeight > 0) {
+        opponentTileHeight = Math.min(Math.max(data.tileHeight, 10), 150);
+    } else {
+        opponentTileHeight = TILE_HEIGHT;
+    }
+    if (Number.isFinite(data.boardWidth) && data.boardWidth > 0) {
+        opponentBoardWidth = Math.max(data.boardWidth, 200);
+    } else {
+        opponentBoardWidth = canvas.width;
+    }
     isChordMode = (data.mode || '').endsWith('_chord'); // チョードモードを反映
     waitingScreen.classList.add('hidden');
     startGame();
@@ -758,7 +787,17 @@ socket.on('rankingData', (data) => {
 });
 
 // Game Functions
+// L7: 名牌の正規化: trim + 32文字制限、空白のみはデフォルト名
+function normalizePlayerName(raw) {
+    const name = (typeof raw === 'string' ? raw : '').trim().slice(0, 32);
+    return name.length > 0 ? name : "名無しさん";
+}
+
 function startGame() {
+    // M1: 重複開始を防止
+    if (isPlaying) return;
+    cancelAnimationFrame(animationId);
+
     tiles = [];
     score = 0;
     speed = isPracticeMode ? practiceFixedSpeed : 5;
@@ -1076,11 +1115,17 @@ function gameOver(reason) {
     draw();
 
     const generation = ++gameOverGeneration;
+    if (isMultiplayer) {
+        // M5: 最終スコアを同期で送信(離脱前に必ず届くように)。
+        // server 側の直前スコアと突合される。
+        if (currentRoom) {
+            socket.emit('playerDied', { room: currentRoom, score: score });
+        }
+    }
     setTimeout(() => {
         // 再起動されている(新しいgameOver/startGameが呼ばれた)場合は無効化
         if (generation !== gameOverGeneration) return;
         if (isMultiplayer) {
-            socket.emit('playerDied', currentRoom);
             showGameOver(false, "あなたのミスです...負けました。");
         } else {
             // Save score locally/on server (skip if practice mode)
@@ -1094,6 +1139,16 @@ function gameOver(reason) {
     }, 500);
 }
 
+// L10: 接続喪失時の通知: 対戦中はゲームを終了して表示する
+socket.on('disconnect', () => {
+    if (isMultiplayer && isPlaying) {
+        isPlaying = false;
+        cancelAnimationFrame(animationId);
+        draw();
+        showGameOver(false, "サーバーとの接続が切断されました。");
+    }
+});
+
 // 相手からの切断通知: ゲームを終了して結果画面を表示(ソロ続行も可能にする選択肢の入口)
 socket.on('opponentDisconnected', () => {
     if (isMultiplayer && isPlaying) {
@@ -1105,6 +1160,13 @@ socket.on('opponentDisconnected', () => {
 });
 
 function showGameOver(isWin, message) {
+    // M3: 対戦中は server 側に終了を通知してルームから離脱する
+    if (isMultiplayer) {
+        if (currentRoom) {
+            socket.emit('gameEnded', { room: currentRoom, score: score });
+        }
+        currentRoom = null;
+    }
     scoreDisplay.classList.add('hidden');
     opponentScoreDisplay.classList.add('hidden');
     finalScoreSpan.innerText = score;
@@ -1156,9 +1218,9 @@ function drawOpponentBoard(oppTiles) {
         if (tile.isError) oppCtx.fillStyle = 'red';
         else if (tile.clicked) oppCtx.fillStyle = '#ddd';
         else oppCtx.fillStyle = '#000';
-        let drawY = (tile.y + (TILE_PITCH - TILE_HEIGHT)) * scale;
-        oppCtx.fillRect(tile.col * (COL_WIDTH * scale), drawY, COL_WIDTH * scale, TILE_HEIGHT * scale);
+        let drawY = (tile.y + (TILE_PITCH - opponentTileHeight)) * scale;
+        oppCtx.fillRect(tile.col * (COL_WIDTH * scale), drawY, COL_WIDTH * scale, opponentTileHeight * scale);
         oppCtx.strokeStyle = '#999';
-        oppCtx.strokeRect(tile.col * (COL_WIDTH * scale), drawY, COL_WIDTH * scale, TILE_HEIGHT * scale);
+        oppCtx.strokeRect(tile.col * (COL_WIDTH * scale), drawY, COL_WIDTH * scale, opponentTileHeight * scale);
     });
 }
